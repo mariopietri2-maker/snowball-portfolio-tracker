@@ -6,22 +6,26 @@ A modern, beautiful web app for stock portfolio tracking, CSV portfolio import, 
 
 ## ✨ Features
 
-- 📊 **Portfolio Dashboard** — Overview of total value, daily P&L, allocation charts
-- 📥 **CSV Portfolio Import** — Easily import holdings from brokers (supports common formats)
-- 📈 **Holdings Tracker** — Live (or delayed) prices, cost basis, unrealized gains
-- 💰 **Dividend Tracker** — Upcoming dividends, historical payments, yield on cost
-- 🗓️ **Dividend Calendar** — Visual calendar of expected payouts
-- ❄️ **Snowball Visualizer** (new!) — Interactive compound growth simulator with dividend reinvestment
-- 📱 Responsive design (mobile-friendly)
-- 🌙 Dark mode ready
+- 📊 **Personalized Dashboard** — Greeting, live index ticker, portfolio value, day change, gains, estimated income, allocation donut, and portfolio history chart
+- 📥 **CSV Broker Import** — Link multiple brokerage accounts and import positions with per-broker layouts (Schwab, Interactive Brokers, Robinhood, tastytrade, generic); duplicates are merged with weighted-average cost basis
+- 📈 **Live Prices** — Real-time/delayed quotes for your holdings via Yahoo Finance (cached server-side)
+- 🔍 **Markets & Stock Screener** — Search any ticker, live quotes, star favorites
+- 📰 **Stock News** — Headlines for your holdings and any ticker's detail page
+- 📈 **Stock Detail Pages** — Interactive price chart (1D–5Y), 52-week range, volume, add-position
+- 👤 **Personalization** — Profile name, avatar, base currency, dark/light theme, accent color, refresh rate, yield assumption
+- 💰 **Dividend Tracker & Calendar** — Manual events, upcoming payouts, income estimate, calendar view
+- ❄️ **Snowball Visualizer** — Interactive compound growth simulator with dividend reinvestment
+- 📱 Responsive design (mobile-friendly, bottom nav on mobile)
+
+> Data is stored in your browser's localStorage — no backend required. Prices are delayed, provided for informational purposes only.
 
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 (App Router) + TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui
+- **Styling**: Tailwind CSS (light/dark themes + accents)
 - **Charts**: Recharts
 - **State**: Zustand + localStorage (no backend required for MVP)
-- **Data**: Yahoo Finance / Finnhub (configurable)
+- **Market data**: Yahoo Finance via a cached server route (`/api/yahoo`)
 
 ## 🚀 Getting Started
 
@@ -43,20 +47,40 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ```
 app/
-  ├── page.tsx              # Dashboard
-  ├── portfolio/            # Holdings & import
-  ├── dividends/            # Dividend tracker & calendar
+  ├── page.tsx              # Personalized dashboard
+  ├── portfolio/            # Merged holdings + quick add
+  ├── brokers/              # Broker accounts + CSV import
+  ├── stocks/               # Markets screener + [symbol] detail (charts/news)
+  ├── watchlist/            # Followed tickers
+  ├── dividends/            # Dividend tracker + calendar
   ├── snowball/             # Growth visualizer
+  ├── settings/             # Profile, theme, currency
+  ├── api/yahoo/            # Cached Yahoo Finance proxy
   └── layout.tsx
 components/
-  ├── ui/                   # shadcn components
-  ├── PortfolioTable.tsx
+  ├── ui.tsx                # Card, Button, Badge, Spinner
+  ├── IndicesTicker.tsx     # Live index marquee
+  ├── StockPriceChart.tsx
+  ├── AllocationChart.tsx
+  ├── PortfolioHistoryChart.tsx
+  ├── NewsFeed.tsx
+  ├── StockSearch.tsx
+  ├── WatchlistGrid.tsx
   ├── DividendCalendar.tsx
-  └── SnowballChart.tsx
+  ├── HoldingsTable.tsx
+  ├── StatCard.tsx
+  ├── SiteHeader.tsx
+  └── ThemeProvider.tsx
+hooks/
+  └── useLiveQuotes.ts      # Polling quotes hook
 lib/
-  ├── store.ts              # Zustand store
-  ├── csv-parser.ts
-  └── finance.ts            # Price & dividend helpers
+  ├── store.ts              # Zustand store (accounts, watchlist, prefs)
+  ├── csv-parser.ts         # Broker preset CSV parsing
+  ├── broker-presets.ts
+  ├── prices.ts             # Client fetch helpers
+  ├── yahoo-transform.ts
+  ├── finance.ts
+  └── uuid.ts
 types/
   └── index.ts
 ```
@@ -64,14 +88,17 @@ types/
 ## 🗺️ Roadmap
 
 - [x] Project scaffolding
-- [ ] CSV import parser
-- [ ] Real-time / delayed price fetching
-- [ ] Dividend data integration
-- [ ] Snowball growth simulator
-- [ ] Multi-currency support
+- [x] CSV import parser (with duplicate merge)
+- [x] Snowball growth simulator
+- [x] Live / delayed price fetching
+- [x] Broker account management
+- [x] Watchlist + personalized dashboard
+- [x] Market news
+- [ ] Plaid-style broker linking
+- [ ] True multi-user accounts (Supabase backend)
+- [ ] Multi-currency conversions
 - [ ] Tax estimate (optional)
 - [ ] Export reports
-- [ ] Optional backend (Supabase) for sync across devices
 
 ## 🤝 Contributing
 

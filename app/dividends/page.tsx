@@ -1,128 +1,195 @@
 "use client";
 
+import { useState } from "react";
 import { usePortfolioStore } from "@/lib/store";
-import { formatCurrency } from "@/lib/finance";
+import { mergeAccountHoldings, estimateDividendIncome, formatCurrency, formatPercent } from "@/lib/finance";
+import { DividendCalendar } from "@/components/DividendCalendar";
+import { Card, CardHeader, Button, Badge, EmptyState } from "@/components/ui";
 
 export default function DividendsPage() {
-  const { holdings, dividends, addDividend } = usePortfolioStore();
+  const { dividends, accounts, preferences, addDividend, removeDividend } =
+    usePortfolioStore();
+  const [symbol, setSymbol] = useState("");
+  const [amount, setAmount] = useState("");
+  const [payDate, setPayDate] = useState("");
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
-  const handleAddDividend = () => {
-    const symbol = prompt("Ticker symbol:");
-    if (!symbol) return;
-    const amountStr = prompt("Amount per share:");
-    const amount = parseFloat(amountStr || "0");
-    if (isNaN(amount) || amount <= 0) return;
+  const holdings = mergeAccountHoldings(accounts);
+  const income = estimateDividendIncome(
+    holdings,
+    dividends,
+    preferences.defaultYieldPct
+  );
 
-    const payDate = prompt("Pay date (YYYY-MM-DD):") || new Date().toISOString().slice(0, 10);
-    const exDate = prompt("Ex-div date (YYYY-MM-DD):") || payDate;
+  const upcoming = dividends
+    .filter((d) => d.status !== "paid")
+    .sort((a, b) => a.payDate.localeCompare(b.payDate));
+  const paid = dividends
+    .filter((d) => d.status === "paid")
+    .sort((a, b) => b.payDate.localeCompare(a.payDate));
 
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(amount);
+    if (!symbol.trim() || isNaN(amt) || amt <= 0) return;
     addDividend({
-      symbol: symbol.toUpperCase(),
-      amountPerShare: amount,
-      exDate,
-      payDate,
+      symbol: symbol.trim().toUpperCase(),
+      amountPerShare: amt,
+      exDate: payDate || new Date().toISOString().slice(0, 10),
+      payDate: payDate || new Date().toISOString().slice(0, 10),
       status: "upcoming",
-      currency: "USD",
+      currency: preferences.currency,
     });
+    setSymbol("");
+    setAmount("");
+    setPayDate("");
+    setStatusMsg("Dividend event recorded.");
+    setTimeout(() => setStatusMsg(null), 3000);
   };
 
-  // Rough estimate of annual dividend income based on holdings (placeholder)
-  const estimatedAnnual = holdings.reduce((sum, h) => {
-    // Assume 2% yield if we don't have real data yet
-    return sum + h.shares * h.costBasis * 0.02;
-  }, 0);
+  const upcomingTotal = upcoming.reduce(
+    (s, d) => s + d.amountPerShare,
+    0
+  );
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dividends</h1>
-          <p className="text-slate-400 mt-1">
-            Track upcoming and historical dividend payments.
-          </p>
-        </div>
-        <button
-          onClick={handleAddDividend}
-          className="px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium transition"
-        >
-          + Add Dividend
-        </button>
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dividends</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Track payouts, see what&apos;s coming, and estimate annual income.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
-          <p className="text-sm text-slate-400">Estimated Annual Income*</p>
-          <p className="text-2xl font-semibold mt-1 text-emerald-400">
-            {formatCurrency(estimatedAnnual)}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Annual Income</p>
+          <p className="text-xl font-bold tabular-nums text-emerald-500 dark:text-emerald-400">
+            {formatCurrency(income.total, preferences.currency)}
           </p>
-          <p className="text-xs text-slate-500 mt-1">Based on ~2% yield assumption</p>
-        </div>
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
-          <p className="text-sm text-slate-400">Tracked Events</p>
-          <p className="text-2xl font-semibold mt-1">{dividends.length}</p>
-        </div>
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
-          <p className="text-sm text-slate-400">Holdings with Dividends</p>
-          <p className="text-2xl font-semibold mt-1">
-            {new Set(dividends.map((d) => d.symbol)).size}
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+            {formatCurrency(income.fromEvents, preferences.currency)} from events +{" "}
+            {formatCurrency(income.estimated, preferences.currency)} estimated
           </p>
-        </div>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Upcoming Payouts</p>
+          <p className="text-xl font-bold tabular-nums">{upcoming.length}</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+            {formatCurrency(upcomingTotal, preferences.currency)} total / share
+          </p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Tracked Events</p>
+          <p className="text-xl font-bold tabular-nums">{dividends.length}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Yield on Cost</p>
+          <p className="text-xl font-bold tabular-nums">
+            {income.total > 0 ? formatPercent((income.total / Math.max(holdings.reduce((s, h) => s + h.shares * h.costBasis, 0), 1)) * 100) : "—"}
+          </p>
+        </Card>
       </div>
 
-      <div className="rounded-xl border border-slate-800 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-900 text-slate-400">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium">Symbol</th>
-              <th className="text-right px-4 py-3 font-medium">Amount / Share</th>
-              <th className="text-left px-4 py-3 font-medium">Ex-Date</th>
-              <th className="text-left px-4 py-3 font-medium">Pay Date</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800">
-            {dividends.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
-                  No dividend events yet. Add one manually or connect a data source later.
-                </td>
-              </tr>
+      <Card className="p-5">
+        <CardHeader title="Dividend Calendar" subtitle="Expected payout dates" />
+        <div className="pt-4">
+          <DividendCalendar dividends={dividends} currency={preferences.currency} />
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <CardHeader title="Add Dividend Event" subtitle="Record an upcoming or paid payout" />
+        <form onSubmit={submit} className="flex flex-wrap gap-3 items-end mt-4">
+          <label className="flex-1 min-w-24">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Symbol</span>
+            <input
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              placeholder="AAPL"
+              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
+            />
+          </label>
+          <label className="flex-1 min-w-24">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Amount / share</span>
+            <input
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.25"
+              inputMode="decimal"
+              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
+            />
+          </label>
+          <label className="flex-1 min-w-32">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Pay date</span>
+            <input
+              type="date"
+              value={payDate}
+              onChange={(e) => setPayDate(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
+            />
+          </label>
+          <Button type="submit" variant="primary">Add</Button>
+        </form>
+        {statusMsg && <p className="mt-3 text-sm text-accent">{statusMsg}</p>}
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="p-5">
+          <CardHeader title="Upcoming" />
+          <div className="pt-2 overflow-x-auto">
+            {upcoming.length === 0 ? (
+              <EmptyState title="No upcoming payouts" />
             ) : (
-              dividends
-                .slice()
-                .sort((a, b) => a.payDate.localeCompare(b.payDate))
-                .map((d) => (
-                  <tr key={d.id} className="hover:bg-slate-900/50">
-                    <td className="px-4 py-3 font-medium">{d.symbol}</td>
-                    <td className="px-4 py-3 text-right">
-                      {formatCurrency(d.amountPerShare)}
-                    </td>
-                    <td className="px-4 py-3">{d.exDate}</td>
-                    <td className="px-4 py-3">{d.payDate}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                          d.status === "upcoming"
-                            ? "bg-sky-900/50 text-sky-300"
-                            : d.status === "paid"
-                            ? "bg-emerald-900/50 text-emerald-300"
-                            : "bg-slate-800 text-slate-300"
-                        }`}
-                      >
-                        {d.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {upcoming.map((d) => (
+                    <tr key={d.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="py-2.5 font-medium">{d.symbol}</td>
+                      <td className="py-2.5 tabular-nums">{formatCurrency(d.amountPerShare, d.currency ?? preferences.currency)}</td>
+                      <td className="py-2.5 text-slate-500 dark:text-slate-400">{d.payDate}</td>
+                      <td className="py-2.5 text-right">
+                        <Badge tone="accent">{d.status}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </Card>
 
-      <p className="text-xs text-slate-500">
-        * Real dividend data can later be pulled from Yahoo Finance, Dividend.com, or
-        similar APIs. Manual entry is available for now.
-      </p>
+        <Card className="p-5">
+          <CardHeader title="Paid" />
+          <div className="pt-2 overflow-x-auto">
+            {paid.length === 0 ? (
+              <EmptyState title="No paid events yet" />
+            ) : (
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {paid.map((d) => (
+                    <tr key={d.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="py-2.5 font-medium">{d.symbol}</td>
+                      <td className="py-2.5 tabular-nums text-emerald-500 dark:text-emerald-400">
+                        {formatCurrency(d.amountPerShare, d.currency ?? preferences.currency)}
+                      </td>
+                      <td className="py-2.5 text-slate-500 dark:text-slate-400">{d.payDate}</td>
+                      <td className="py-2.5 text-right">
+                        <button
+                          onClick={() => removeDividend(d.id)}
+                          className="text-xs text-slate-400 hover:text-rose-500 transition"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -14,10 +13,11 @@ import {
   AreaChart,
 } from "recharts";
 import { usePortfolioStore } from "@/lib/store";
-import { calculatePortfolioMetrics, projectSnowball, formatCurrency } from "@/lib/finance";
+import { mergeAccountHoldings, calculatePortfolioMetrics, projectSnowball, formatCurrency } from "@/lib/finance";
 
 export default function SnowballPage() {
-  const holdings = usePortfolioStore((s) => s.holdings);
+  const accounts = usePortfolioStore((s) => s.accounts);
+  const holdings = mergeAccountHoldings(accounts);
   const metrics = calculatePortfolioMetrics(holdings);
 
   const [startingValue, setStartingValue] = useState(
