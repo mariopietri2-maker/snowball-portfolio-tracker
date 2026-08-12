@@ -78,13 +78,12 @@ export async function downloadAll(uid: string) {
   const s = supabase;
   if (!s) throw new Error("Supabase not configured");
 
-  const [profile, accounts, dividends, watchlist, snapshots, alerts] = await Promise.all([
+  const [profile, accounts, dividends, watchlist, snapshots] = await Promise.all([
     s.from("profiles").select("*").eq("id", uid).maybeSingle(),
     s.from("accounts").select("id, name, broker, currency").eq("user_id", uid),
     s.from("dividends").select("*").eq("user_id", uid),
     s.from("watchlist").select("symbol").eq("user_id", uid),
     s.from("snapshots").select("date, total_value").eq("user_id", uid).order("date"),
-    s.from("alerts").select("*").eq("user_id", uid),
   ]);
 
   if (profile.error) throw profile.error;
@@ -92,7 +91,22 @@ export async function downloadAll(uid: string) {
   if (dividends.error) throw dividends.error;
   if (watchlist.error) throw watchlist.error;
   if (snapshots.error) throw snapshots.error;
-  if (alerts.error) throw alerts.error;
+
+  // Alerts table may not exist yet if schema.sql hasn't been re-run — degrade gracefully.
+  let alertsList: PriceAlert[] = [];
+  try {
+    const alerts = await s.from("alerts").select("*").eq("user_id", uid);
+    if (alerts.error) throw alerts.error;
+    alertsList = ((alerts.data ?? []) as RowAlert[]).map((a) => ({
+      id: a.id,
+      symbol: a.symbol,
+      direction: (a.direction as PriceAlert["direction"]) ?? "above",
+      targetPrice: Number(a.target_price),
+      createdAt: "",
+    }));
+  } catch (err) {
+    if (!(err instanceof Error && /does not exist/i.test(err.message))) throw err;
+  }
 
   const accountRows = (accounts.data ?? []) as RowAccount[];
 
@@ -142,15 +156,6 @@ export async function downloadAll(uid: string) {
   const snapshotsList: PortfolioSnapshot[] = snapRows.map((s2) => ({
     date: s2.date,
     totalValue: Number(s2.total_value),
-  }));
-
-  const alertRows = (alerts.data ?? []) as RowAlert[];
-  const alertsList: PriceAlert[] = alertRows.map((a) => ({
-    id: a.id,
-    symbol: a.symbol,
-    direction: (a.direction as PriceAlert["direction"]) ?? "above",
-    targetPrice: Number(a.target_price),
-    createdAt: "",
   }));
 
   return {
@@ -264,17 +269,24 @@ export async function uploadAll(
   }
 
   // Price alerts
-  await s.from("alerts").delete().eq("user_id", uid);
-  const lastAlerts = state.alerts.slice(-50);
-  if (lastAlerts.length) {
-    await s.from("alerts").insert(
-      lastAlerts.map((a) => ({
-        id: a.id,
-        user_id: uid,
-        symbol: a.symbol,
-        direction: a.direction,
-        target_price: a.targetPrice,
-      }))
-    );
+  try {
+    const del = await s.from("alerts").delete().eq("user_id", uid);
+    if (del.error) throw del.error;
+    const lastAlerts = state.alerts.slice(-50);
+    if (lastAlerts.length) {
+      const ins = await s.from("alerts").insert(
+        lastAlerts.map((a) => ({
+          id: a.id,
+          user_id: uid,
+          symbol: a.symbol,
+          direction: a.direction,
+          target_price: a.targetPrice,
+        }))
+      );
+      if (ins.error) throw ins.error;
+    }
+  } catch (err) {
+    // Ignore "alerts table not created yet" — schema.sql hasn't been re-run.
+    if (!(err instanceof Error && /does not exist/i.test(err.message))) throw err;
   }
 }
