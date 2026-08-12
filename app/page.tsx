@@ -60,6 +60,20 @@ export default function DashboardPage() {
   const priorValue = metrics.totalValue - dayChange;
   const dayChangePct = priorValue > 0 ? (dayChange / priorValue) * 100 : 0;
 
+  const sharesBySymbol = new Map<string, number>();
+  for (const h of holdings) {
+    sharesBySymbol.set(h.symbol, (sharesBySymbol.get(h.symbol) ?? 0) + h.shares);
+  }
+  const upcomingDividends = dividends
+    .filter((d) => d.status !== "paid")
+    .sort((a, b) => a.payDate.localeCompare(b.payDate))
+    .slice(0, 3)
+    .map((d) => ({
+      symbol: d.symbol,
+      payDate: d.payDate,
+      amount: ((sharesBySymbol.get(d.symbol) ?? 0) * d.amountPerShare) || d.amountPerShare,
+    }));
+
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -131,6 +145,7 @@ export default function DashboardPage() {
           dayChange={dayChange}
           dayChangePct={dayChangePct}
           income={income}
+          upcoming={upcomingDividends}
         />
 
         <div className="space-y-4">

@@ -23,6 +23,13 @@ type DetailedHolding = {
 };
 type Allocation = { data: Array<{ name: string; value: number; pct: number }> };
 
+function daysUntil(iso: string): number | null {
+  const t = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(t.getTime())) return null;
+  const d = Math.ceil((t.getTime() - Date.now()) / 86400000);
+  return d < 0 ? 0 : d;
+}
+
 function Sparkline({
   series,
   up,
@@ -68,6 +75,7 @@ export function DashboardStocks({
   dayChange,
   dayChangePct,
   income,
+  upcoming,
 }: {
   detailed: DetailedHolding[];
   quotes: Record<string, LiveQuote>;
@@ -82,7 +90,8 @@ export function DashboardStocks({
   currency: string;
   dayChange: number;
   dayChangePct: number;
-  income: { total: number };
+  income: { total: number; fromEvents: number; estimated: number };
+  upcoming: { symbol: string; payDate: string; amount: number }[];
 }) {
   if (detailed.length === 0) {
     return (
@@ -247,6 +256,101 @@ export function DashboardStocks({
               </span>
             </p>
           </div>
+        </div>
+      </Card>
+
+      <Card className="overflow-hidden">
+        <div className="p-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-semibold">Dividends</h3>
+            <Link href="/dividends" className="text-sm text-accent hover:underline">
+              Manage →
+            </Link>
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="rounded-xl bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/25 px-3 py-2.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-500 dark:text-slate-400">Annual income</span>
+              <span className="font-bold tabular-nums text-emerald-500 dark:text-emerald-400">
+                {formatCurrency(income.total, currency)}
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-emerald-500/20 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-emerald-500"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    income.total > 0 ? (income.fromEvents / income.total) * 100 : 0
+                  )}%`,
+                }}
+              />
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+              {formatCurrency(income.fromEvents, currency)} paid
+              {income.total > income.fromEvents && (
+                <>
+                  {" "}
+                  · {formatCurrency(income.total - income.fromEvents, currency)} ahead
+                </>
+              )}
+            </p>
+          </div>
+
+          {upcoming.length === 0 ? (
+            <Link
+              href="/dividends"
+              className="block rounded-xl border border-dashed border-slate-300 dark:border-slate-700 px-3 py-3 text-center text-sm text-slate-500 dark:text-slate-400 hover:border-accent hover:text-accent transition"
+            >
+              No upcoming payouts — add your first →
+            </Link>
+          ) : (
+            <div className="space-y-2">
+              {upcoming.map((d, i) => {
+                const days = daysUntil(d.payDate);
+                const label =
+                  days === null
+                    ? d.payDate
+                    : days === 0
+                      ? "today"
+                      : `in ${days} day${days === 1 ? "" : "s"}`;
+                return (
+                  <div
+                    key={`${d.symbol}-${d.payDate}-${i}`}
+                    className="flex items-center gap-3 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 px-3 py-2"
+                  >
+                    <span
+                      className="w-9 h-9 rounded-lg grid place-items-center text-xs font-bold shrink-0"
+                      style={{
+                        backgroundColor: `${colorForSymbol(d.symbol)}22`,
+                        color: colorForSymbol(d.symbol),
+                      }}
+                    >
+                      {d.symbol}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">
+                        {formatCurrency(d.amount, currency)}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Payout {label} ·{" "}
+                        {new Date(`${d.payDate}T00:00:00`).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    {i === 0 && (
+                      <Badge tone="up">
+                        {days === 0 ? "Paying today" : "Next"}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </Card>
 
