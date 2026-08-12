@@ -12,9 +12,10 @@ const NAV = [
   { href: "/watchlist", label: "Watchlist" },
   { href: "/dividends", label: "Dividends" },
   { href: "/snowball", label: "Snowball" },
+  { href: "/chat", label: "Chat" },
 ];
 
-const MOBILE_NAV = ["/", "/portfolio", "/stocks", "/watchlist", "/settings"];
+const MOBILE_NAV = ["/", "/portfolio", "/stocks", "/watchlist", "/chat", "/settings"];
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -84,6 +85,7 @@ export function SiteHeader() {
               "/portfolio": "📈",
               "/stocks": "🔍",
               "/watchlist": "★",
+              "/chat": "💬",
               "/settings": "⚙",
             };
             return (

@@ -13,7 +13,7 @@ import { useLiveQuotes } from "@/hooks/useLiveQuotes";
 import { IndicesTicker } from "@/components/IndicesTicker";
 import { NewsFeed } from "@/components/NewsFeed";
 import { DashboardStocks } from "@/components/DashboardStocks";
-import { ChatWidget } from "@/components/ChatWidget";
+import { CommunityPreview } from "@/components/CommunityPreview";
 import { SpotifyPlayer } from "@/components/SpotifyPlayer";
 import { Card, Button } from "@/components/ui";
 
@@ -134,7 +134,7 @@ export default function DashboardPage() {
         />
 
         <div className="space-y-4">
-          <ChatWidget />
+          <CommunityPreview />
           <SpotifyPlayer />
         </div>
       </div>
