@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard Preview - Snowball</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:"class",theme:{extend:{fontFamily:{sans:["Inter","Segoe UI","system-ui","Arial"]}}}}</script>
+<style>
+body{background:#020617;font-family:Inter,"Segoe UI",system-ui,Arial}
+.card{background:rgba(15,23,42,.85);border:1px solid #1e293b;border-radius:16px;box-shadow:0 8px 30px rgba(2,6,23,.5)}
+.chat-msg{animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.marquee{overflow:hidden;white-space:nowrap}
+.marquee>div{display:inline-block;animation:scroll 40s linear infinite}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:8px}
+.stock-row{transition:border-color .15s,background .15s,transform .15s}
+.stock-row:hover{border-color:#334155;background:#0f172a;transform:translateY(-1px)}
+.news-card{cursor:pointer;transition:border-color .15s,transform .15s}
+.news-card:hover{border-color:#334155;transform:translateY(-2px)}
+.eq{display:flex;align-items:flex-end;gap:2px;height:14px}
+.eq span{width:3px;border-radius:2px;background:#1DB954;animation:eq 1s ease-in-out infinite}
+.eq span:nth-child(2){animation-delay:.2s}
+.eq span:nth-child(3){animation-delay:.4s}
+.eq span:nth-child(4){animation-delay:.1s}
+.eq.paused span{animation-play-state:paused;height:3px!important}
+@keyframes eq{0%,100%{height:4px}50%{height:14px}}
+@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-3px);opacity:1}}
+.typing span{width:5px;height:5px;border-radius:50%;background:#64748b;display:inline-block;margin-right:3px;animation:typing 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+.thumb{transition:transform .3s ease}
+</style>
+</head>
+<body class="text-slate-100 pb-16">
+
+<div class="bg-sky-500/15 border-b border-sky-500/30 text-sky-300 text-xs font-medium px-4 py-2 text-center">
+  PREVIEW ONLY - static mockup. News, chat and Spotify are simulated. Nothing is live or saved.
+</div>
+
+<header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+    <a class="flex items-center gap-2 font-bold text-[15px]">
+      <span class="w-7 h-7 rounded-lg bg-sky-500 grid place-items-center text-slate-950 text-sm">SB</span>
+      Snowball
+    </a>
+    <nav class="hidden md:flex items-center gap-1 text-sm">
+      <a class="px-3 py-1.5 rounded-lg bg-sky-500/15 text-sky-400 font-medium">Home</a>
+      <a class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white">Portfolio</a>
+      <a class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white">Stocks</a>
+      <a class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white">Dividends</a>
+      <a class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white">Snowball</a>
+      <a class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white">Watchlist</a>
+      <a class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white">Brokers</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-slate-700 grid place-items-center text-xs text-slate-300">JD</div>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-6xl mx-auto px-4 pt-4">
+  <div class="card marquee text-xs text-slate-400 px-4 py-2 overflow-hidden">
+    <div>
+      <span class="mx-6 text-slate-200 font-medium">S&amp;P 500 <span class="text-emerald-400 ml-1">5,842.1 +0.42%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">NASDAQ <span class="text-emerald-400 ml-1">18,562.7 +0.61%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">DOW <span class="text-rose-400 ml-1">41,320.5 -0.18%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">VIX <span class="text-rose-400 ml-1">14.3 -2.1%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">GOLD <span class="text-emerald-400 ml-1">2,381 +0.9%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">S&amp;P 500 <span class="text-emerald-400 ml-1">5,842.1 +0.42%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">NASDAQ <span class="text-emerald-400 ml-1">18,562.7 +0.61%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">DOW <span class="text-rose-400 ml-1">41,320.5 -0.18%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">VIX <span class="text-rose-400 ml-1">14.3 -2.1%</span></span>
+      <span class="mx-6 text-slate-200 font-medium">GOLD <span class="text-emerald-400 ml-1">2,381 +0.9%</span></span>
+    </div>
+  </div>
+</div>
+
+<main class="max-w-6xl mx-auto px-4 py-6 grid gap-4 lg:grid-cols-[360px_1fr_330px] items-start">
+
+  <section class="card p-4">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <div class="flex items-center gap-2">
+        <h1 class="font-semibold text-base">Yahoo Finance News</h1>
+        <span class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Live</span>
+      </div>
+      <div class="flex items-center gap-1 text-xs">
+        <span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-[11px]">Your holdings</span>
+        <span onclick="setFilter(this)" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-[11px] chip cursor-pointer">Tech</span>
+        <span onclick="setFilter(this)" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-[11px] chip cursor-pointer">Markets</span>
+        <span onclick="setFilter(this)" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-[11px] chip cursor-pointer">Crypto</span>
+        <span onclick="setFilter(this)" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-400 text-[11px] chip cursor-pointer">Economy</span>
+      </div>
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <article class="news-card rounded-xl overflow-hidden border border-slate-800 bg-slate-900 sm:col-span-2">
+        <div class="relative h-36 overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-br from-sky-600/60 via-indigo-600/50 to-purple-700/70"></div>
+          <div class="absolute inset-0 grid place-items-center">
+            <span class="text-[110px] font-black text-white/10 tracking-tight thumb hover:scale-105 transition-transform">NVDA</span>
+          </div>
+          <div class="absolute top-3 left-3 flex items-center gap-2">
+            <span class="flex items-center gap-1.5 rounded-md bg-black/50 backdrop-blur text-[10px] font-bold text-white px-2 py-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>LIVE</span>
+            <span class="rounded-md bg-black/50 backdrop-blur text-[10px] font-semibold text-slate-200 px-2 py-1">Top story</span>
+          </div>
+          <span class="absolute bottom-3 right-3 rounded-full bg-black/50 backdrop-blur px-2.5 py-1 text-[11px] font-bold text-emerald-400">NVDA +2.4%</span>
+        </div>
+        <div class="p-4">
+          <span class="text-[10px] uppercase tracking-wider text-sky-400 font-semibold">Reuters | 14 min ago</span>
+          <h2 class="font-semibold text-lg mt-1 leading-snug">Nvidia tops $4 trillion as AI demand keeps compounding</h2>
+          <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Chipmaker beats every estimate on data-center revenue; guidance tops $43B. Hyperscaler capex keeps fueling the snowball.</p>
+        </div>
+      </article>
+
+      <article class="news-card rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+        <div class="h-24 bg-gradient-to-br from-sky-800/70 to-slate-900 relative">
+          <span class="absolute inset-0 grid place-items-center text-3xl font-black text-white/10">SPX</span>
+        </div>
+        <div class="p-4">
+          <span class="text-[10px] uppercase tracking-wider text-sky-400 font-semibold">Markets</span>
+          <h3 class="font-medium text-sm mt-1.5 leading-snug">Fed's preferred inflation gauge cools to 2.4%, cementing September cut bets</h3>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">Core PCE missed expectations, keeping the path clear for lower rates.</p>
+          <div class="text-xs text-slate-500 mt-3">Bloomberg | 38 min ago</div>
+        </div>
+      </article>
+
+      <article class="news-card rounded-xl overflow-hidden border border-slate-800 bg-slate-900">
+        <div class="h-24 bg-gradient-to-br from-fuchsia-800/70 to-slate-900 relative">
+          <span class="absolute inset-0 grid place-items-center text-3xl font-black text-white/10">JNJ</span>
+        </div>
+        <div class="p-4">
+          <span class="text-[10px] uppercase tracking-wider text-sky-400 font-semibold">Dividends</span>
+          <h3 class="font-medium text-sm mt-1.5 leading-snug">J&amp;J raises dividend 50th straight year - a dividend aristocrat milestone</h3>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">Payout climbs 4.2% to $1.24/share; yield now 3.4%.</p>
+          <div class="text-xs text-slate-500 mt-3">PRNewswire | 1h ago</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="mt-4 text-center">
+      <a class="inline-flex items-center gap-1 text-sm text-sky-400 hover:text-sky-300 font-medium">View all market news &rarr;</a>
+    </div>
+  </section>
+
+  <section class="card p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold text-base flex items-center gap-2">Your stocks <span class="text-[10px] text-slate-500 uppercase tracking-wider">4 holdings</span></h2>
+      <a class="text-xs text-sky-400 hover:text-sky-300">Add stock +</a>
+    </div>
+
+    <div class="space-y-2">
+      <div class="stock-row flex items-center gap-3 rounded-xl bg-slate-900/70 border border-slate-800 px-3 py-2.5 cursor-pointer">
+        <span class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 font-bold grid place-items-center text-xs">NVDA</span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium">Nvidia Corp</p>
+          <p class="text-xs text-slate-500">14.2 sh &middot; $361.61</p>
+        </div>
+        <svg viewBox="0 0 60 24" class="w-16 h-7 shrink-0">
+          <path d="M0,18 C8,17 12,13 18,12 C24,11 28,14 32,9 C36,5 44,7 52,4 C56,2 58,2 60,1" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="text-right">
+          <p class="text-sm font-medium">$5,102.40</p>
+          <p class="text-xs text-emerald-400">+6.1%</p>
+        </div>
+      </div>
+      <div class="stock-row flex items-center gap-3 rounded-xl bg-slate-900/70 border border-slate-800 px-3 py-2.5 cursor-pointer">
+        <span class="w-9 h-9 rounded-lg bg-sky-500/20 text-sky-400 font-bold grid place-items-center text-xs">AAPL</span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium">Apple Inc</p>
+          <p class="text-xs text-slate-500">18 sh &middot; $228.92</p>
+        </div>
+        <svg viewBox="0 0 60 24" class="w-16 h-7 shrink-0">
+          <path d="M0,16 C8,15 12,17 18,14 C24,12 28,13 32,9 C36,7 44,9 52,6 C56,5 58,5 60,4" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="text-right">
+          <p class="text-sm font-medium">$4,120.50</p>
+          <p class="text-xs text-sky-400">+1.0%</p>
+        </div>
+      </div>
+      <div class="stock-row flex items-center gap-3 rounded-xl bg-slate-900/70 border border-slate-800 px-3 py-2.5 cursor-pointer">
+        <span class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold grid place-items-center text-xs">SCHD</span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium">Schwab US Div Equity</p>
+          <p class="text-xs text-slate-500">62 sh &middot; $38.60</p>
+        </div>
+        <svg viewBox="0 0 60 24" class="w-16 h-7 shrink-0">
+          <path d="M0,5 C8,6 12,9 18,8 C24,7 28,4 32,10 C36,15 44,17 52,13 C56,12 58,13 60,16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="text-right">
+          <p class="text-sm font-medium">$2,392.80</p>
+          <p class="text-xs text-rose-400">-0.9%</p>
+        </div>
+      </div>
+      <div class="stock-row flex items-center gap-3 rounded-xl bg-slate-900/70 border border-slate-800 px-3 py-2.5 cursor-pointer">
+        <span class="w-9 h-9 rounded-lg bg-fuchsia-500/20 text-fuchsia-400 font-bold grid place-items-center text-xs">JEPI</span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium">JPM Equity Premium Income</p>
+          <p class="text-xs text-slate-500">41 sh &middot; $58.30</p>
+        </div>
+        <svg viewBox="0 0 60 24" class="w-16 h-7 shrink-0">
+          <path d="M0,12 C8,11 12,8 18,10 C24,12 28,13 32,8 C36,5 44,6 52,7 C56,7 58,6 60,4" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="text-right">
+          <p class="text-sm font-medium">$2,390.30</p>
+          <p class="text-xs text-emerald-400">+0.8%</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 space-y-1.5">
+      <div class="flex justify-between text-[11px] mb-1"><span class="text-slate-500">Allocation</span><span class="text-slate-300">NVDA 36% &middot; AAPL 29% &middot; SCHD 17% &middot; JEPI 18%</span></div>
+      <div class="flex h-2 rounded-full overflow-hidden bg-slate-800">
+        <div class="bg-amber-400" style="width:36%"></div>
+        <div class="bg-sky-400" style="width:29%"></div>
+        <div class="bg-emerald-400" style="width:17%"></div>
+        <div class="bg-fuchsia-400" style="width:18%"></div>
+      </div>
+    </div>
+
+    <div class="mt-4 rounded-xl bg-gradient-to-br from-sky-500/10 to-slate-900 border border-sky-500/20 px-4 py-3 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-slate-400 uppercase tracking-wider">Total value</p>
+        <p class="text-xl font-bold">$14,006 <span class="text-xs text-slate-500 font-medium">USD</span></p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-slate-400 uppercase tracking-wider">Today</p>
+        <p class="text-sm font-semibold text-emerald-400">+$348.90 <span class="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px]">+2.6%</span></p>
+      </div>
+    </div>
+
+    <h2 class="font-semibold text-base mt-5 mb-2">Your graphs</h2>
+
+    <div class="rounded-xl bg-slate-900 border border-slate-800 p-3 relative">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs text-slate-500">Portfolio history</p>
+        <div class="flex gap-1 text-[10px]">
+          <span class="px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-400 font-medium">All</span>
+          <span class="px-2 py-0.5 rounded-md text-slate-500">1Y</span>
+          <span class="px-2 py-0.5 rounded-md text-slate-500">6M</span>
+          <span class="px-2 py-0.5 rounded-md text-slate-500">1M</span>
+        </div>
+      </div>
+      <div class="absolute top-10 right-7 rounded-lg bg-slate-800/90 border border-slate-600/50 px-2 py-1 text-right text-[10px] pointer-events-none">
+        <p class="text-slate-400 leading-none">12 Sep</p>
+        <p class="text-slate-100 font-semibold leading-tight">$14,006</p>
+      </div>
+      <svg viewBox="0 0 300 120" class="w-full h-28">
+        <defs>
+          <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0ea5e9" stop-opacity=".35" />
+            <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <g stroke="#1e293b" stroke-dasharray="3 5">
+          <line x1="0" y1="20" x2="300" y2="20" /><line x1="0" y1="60" x2="300" y2="60" /><line x1="0" y1="100" x2="300" y2="100" />
+        </g>
+        <path d="M0,92 C25,86 40,78 60,74 C85,68 100,58 120,56 C145,50 160,62 180,52 C200,44 215,34 240,30 C265,25 285,18 300,12 L300,120 L0,120 Z" fill="url(#area)" />
+        <path d="M0,92 C25,86 40,78 60,74 C85,68 100,58 120,56 C145,50 160,62 180,52 C200,44 215,34 240,30 C265,25 285,18 300,12" fill="none" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="300" cy="12" r="4" fill="#0ea5e9" stroke="#020617" stroke-width="2" />
+      </svg>
+      <div class="flex justify-between text-[10px] text-slate-600 mt-1 px-1"><span>Jan</span><span>Mar</span><span>Jun</span><span>Sep</span></div>
+    </div>
+
+    <div class="rounded-xl bg-slate-900 border border-slate-800 p-3 mt-3">
+      <p class="text-xs text-slate-500 mb-3">Allocation by sector</p>
+      <div class="flex items-center gap-4">
+        <div class="relative w-24 h-24 shrink-0">
+          <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e293b" stroke-width="5" />
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#0ea5e9" stroke-width="5" stroke-dasharray="36 100" stroke-linecap="round" />
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#a855f7" stroke-width="5" stroke-dasharray="29 100" stroke-dashoffset="-36" stroke-linecap="round" />
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#22c55e" stroke-width="5" stroke-dasharray="17 100" stroke-dashoffset="-65" stroke-linecap="round" />
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#facc15" stroke-width="5" stroke-dasharray="18 100" stroke-dashoffset="-82" stroke-linecap="round" />
+          </svg>
+          <div class="absolute inset-0 grid place-items-center text-center">
+            <div><span class="block text-sm font-bold leading-none">$14K</span><span class="text-[9px] text-slate-500">total</span></div>
+          </div>
+        </div>
+        <div class="text-xs space-y-1.5 text-slate-300 flex-1">
+          <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> Growth <span class="text-slate-500 ml-auto">36% &middot; $5.0K</span></div>
+          <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-fuchsia-500"></span> Tech <span class="text-slate-500 ml-auto">29% &middot; $4.1K</span></div>
+          <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> Dividend <span class="text-slate-500 ml-auto">17% &middot; $2.4K</span></div>
+          <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span> Income <span class="text-slate-500 ml-auto">18% &middot; $2.5K</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid gap-4">
+    <section class="card p-4 flex flex-col" style="max-height:600px">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <h2 class="font-semibold text-base">Community Chat</h2>
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">312 online</span>
+          <div class="flex -space-x-2 ml-1">
+            <span class="w-6 h-6 rounded-full bg-fuchsia-600 border-2 border-slate-900 grid place-items-center text-[8px] font-bold text-white">AK</span>
+            <span class="w-6 h-6 rounded-full bg-emerald-600 border-2 border-slate-900 grid place-items-center text-[8px] font-bold text-white">NV</span>
+            <span class="w-6 h-6 rounded-full bg-sky-600 border-2 border-slate-900 grid place-items-center text-[8px] font-bold text-white">SO</span>
+          </div>
+        </div>
+        <a class="text-xs text-slate-400 hover:text-white">Settings</a>
+      </div>
+      <div class="flex gap-1 flex-wrap text-xs mb-3" id="chatTabs">
+        <button onclick="switchCat(this,'General')" class="px-3 py-1.5 rounded-full bg-sky-500/15 text-sky-400 font-medium">General</button>
+        <button onclick="switchCat(this,'Bullish')" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300">Bullish</button>
+        <button onclick="switchCat(this,'Bearish')" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300">Bearish</button>
+        <button onclick="switchCat(this,'Dividends')" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300">Dividends</button>
+        <button onclick="switchCat(this,'Q&amp;A')" class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300">Q&amp;A</button>
+      </div>
+      <div class="space-y-3 overflow-y-auto pr-1 flex-1" id="chatBox">
+        <div class="chat-msg flex gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-fuchsia-600 grid place-items-center text-xs font-bold text-white shrink-0">AK</div>
+          <div class="bg-slate-800/70 rounded-2xl rounded-tl-sm px-3 py-2 text-[13px]">
+            <span class="font-semibold text-fuchsia-400 text-xs">AlphaKing</span><span class="text-[10px] text-slate-500 ml-2">12:02</span>
+            <p class="text-slate-200 mt-0.5 leading-snug">JNJ raised 50 straight years today. Aristocrats are printing again.</p>
+          </div>
+        </div>
+        <div class="chat-msg flex gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-emerald-600 grid place-items-center text-xs font-bold text-white shrink-0">NV</div>
+          <div class="bg-slate-800/70 rounded-2xl rounded-tl-sm px-3 py-2 text-[13px]">
+            <span class="font-semibold text-emerald-400 text-xs">NVDA_Maxx</span><span class="text-[10px] text-slate-500 ml-2">12:04</span>
+            <p class="text-slate-200 mt-0.5 leading-snug">$4T club. Buying every pullback.</p>
+          </div>
+        </div>
+        <div class="chat-msg flex gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-sky-600 grid place-items-center text-xs font-bold text-white shrink-0">SO</div>
+          <div class="bg-slate-800/70 rounded-2xl rounded-tl-sm px-3 py-2 text-[13px]">
+            <span class="font-semibold text-sky-400 text-xs">SnowflakeOwl</span><span class="text-[10px] text-slate-500 ml-2">12:06</span>
+            <p class="text-slate-200 mt-0.5 leading-snug">Anyone rotating into treasury ETFs before the rate cut?</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-3">
+        <input id="chatInput" placeholder="Message #General" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm placeholder:text-slate-500 outline-none focus:border-sky-500" onkeydown="if(event.key==='Enter')sendMsg()" />
+        <button onclick="sendMsg()" class="w-10 h-10 rounded-xl bg-sky-500 text-slate-950 grid place-items-center shrink-0 hover:bg-sky-400">Send</button>
+      </div>
+      <p class="text-[10px] text-slate-600 mt-2 text-center">Mock data. Real build: Supabase Realtime, per-category channels, 10s message limit, anonymous names.</p>
+    </section>
+
+    <section class="card p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.3-.7.4-1 .2-2.8-1.7-6.3-2.1-10.4-1.2-.4.1-.8-.2-.9-.6-.1-.4.2-.8.6-.9 4.5-1 8.4-.5 11.5 1.4.4.2.5.7.2 1.1zm1.5-3.3c-.3.4-.8.5-1.2.2-3.2-2-8.1-2.5-11.9-1.4-.5.1-1-.2-1.1-.7 0-.5.2-1 .7-1.1 4.3-1.3 9.8-.7 13.4 1.6.4.3.5.9.1 1.4zm.1-3.4C15.2 8.5 8.8 8.3 5.1 9.4c-.6.2-1.2-.2-1.3-.8-.2-.6.2-1.2.8-1.3 4.1-1.2 11.1-1 15.6 1.7.5.3.7 1 .4 1.5-.3.4-1 .6-1.5.4z"/></svg>
+        <div>
+          <h2 class="font-semibold text-base leading-none">Spotify</h2>
+          <p class="text-[10px] text-slate-500 mt-0.5">Your account, right here while you trade</p>
+        </div>
+        <span class="ml-auto text-[10px] px-2 py-1 rounded-full bg-slate-800 text-slate-400">Free plan OK</span>
+      </div>
+
+      <div id="spotifyLoggedOut">
+        <div class="rounded-xl border border-dashed border-slate-700 p-4 text-center">
+          <p class="text-sm text-slate-300 font-medium">Small window, big snowball</p>
+          <p class="text-xs text-slate-500 mt-1">Login with your personal account to play and control music from the dashboard.</p>
+          <button onclick="loginSpotify()" class="mt-3 inline-flex items-center gap-2 rounded-full bg-[#1DB954] text-black font-bold text-sm px-5 py-2.5 hover:brightness-110">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.3-.7.4-1 .2-2.8-1.7-6.3-2.1-10.4-1.2-.4.1-.8-.2-.9-.6-.1-.4.2-.8.6-.9 4.5-1 8.4-.5 11.5 1.4.4.2.5.7.2 1.1zm1.5-3.3c-.3.4-.8.5-1.2.2-3.2-2-8.1-2.5-11.9-1.4-.5.1-1-.2-1.1-.7 0-.5.2-1 .7-1.1 4.3-1.3 9.8-.7 13.4 1.6.4.3.5.9.1 1.4zm.1-3.4C15.2 8.5 8.8 8.3 5.1 9.4c-.6.2-1.2-.2-1.3-.8-.2-.6.2-1.2.8-1.3 4.1-1.2 11.1-1 15.6 1.7.5.3.7 1 .4 1.5-.3.4-1 .6-1.5.4z"/></svg>
+            Login with Spotify
+          </button>
+        </div>
+      </div>
+
+      <div id="spotifyLoggedIn" class="hidden">
+        <div class="rounded-xl bg-slate-800/60 p-3 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-fuchsia-500 to-sky-500 grid place-items-center text-[9px] text-white font-bold shrink-0 overflow-hidden relative">
+            <span class="absolute -right-1 -top-1 w-5 h-5 rounded-full bg-fuchsia-300/40"></span>
+            LP
+          </div>
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-white">Snowballin'</p>
+            <p class="truncate text-xs text-slate-400">Snowball Finance | Dashboard Playlist</p>
+          </div>
+          <div class="ml-auto flex items-center gap-2">
+            <div class="eq" id="eq"><span></span><span></span><span></span><span></span></div>
+            <button onclick="togglePlay()" class="w-9 h-9 rounded-full bg-white text-black grid place-items-center hover:scale-105 transition-transform" title="play/pause">
+              <svg id="playIcon" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="pauseIcon" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            </button>
+            <button onclick="nextTrack()" class="w-8 h-8 rounded-full bg-slate-700 grid place-items-center hover:bg-slate-600 text-white" title="next">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6l6 6-6 6zM13 6l6 6-6 6z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="mt-3">
+          <div class="relative h-1.5 rounded-full bg-slate-700 overflow-hidden cursor-pointer">
+            <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500" style="width:33%"></div>
+            <div class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow" style="left:33%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-slate-500 mt-1.5"><span>1:12</span><span>3:48</span></div>
+        </div>
+        <div class="mt-2.5 flex items-center gap-2">
+          <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3a3 3 0 0 0-2-2.8v5.6a3 3 0 0 0 2-2.8z"/></svg>
+          <div class="h-1 rounded-full bg-slate-700 flex-1 overflow-hidden cursor-pointer">
+            <div class="h-full rounded-full bg-slate-400" style="width:70%"></div>
+          </div>
+          <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
+        </div>
+        <button onclick="logoutSpotify()" class="w-full mt-3 text-[10px] text-slate-500 hover:text-slate-300 text-center">Disconnect Spotify</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="max-w-6xl mx-auto px-4 pb-6">
+  <div class="rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-xs text-sky-300 leading-relaxed">
+    New three-column layout: <b>Yahoo Finance news</b> | <b>your stocks + graphs</b> | <b>chat + Spotify mini player</b>.
+    All mock data is simulated - nothing here is live.
+  </div>
+</div>
+
+<script>
+const chatData = {
+  General: [
+    { n: "AlphaKing", c: "text-fuchsia-400", b: "bg-fuchsia-600", i: "AK", t: "12:02", m: "JNJ raised 50 straight years today. Aristocrats are printing again." },
+    { n: "NVDA_Maxx", c: "text-emerald-400", b: "bg-emerald-600", i: "NV", t: "12:04", m: "$4T club. Buying every pullback." },
+  ],
+  Bullish: [
+    { n: "Rocket_Ric", c: "text-amber-400", b: "bg-amber-600", i: "RR", t: "11:58", m: "Portfolio +12% YTD. Rate cuts = rocket fuel." },
+    { n: "MoonBag", c: "text-teal-400", b: "bg-teal-600", i: "MB", t: "11:59", m: "Loaded small caps this morning. Early cycle plays fire first." },
+  ],
+  Bearish: [
+    { n: "ChickenLittle", c: "text-red-400", b: "bg-red-600", i: "CL", t: "11:47", m: "VIX is way too calm for this earnings season. Hedge it." },
+    { n: "Breadline72", c: "text-orange-400", b: "bg-orange-600", i: "B7", t: "11:52", m: "Multiple compression is coming. Trim the ARK funds while green." },
+  ],
+  Dividends: [
+    { n: "CouponClipper", c: "text-green-400", b: "bg-green-600", i: "CC", t: "11:40", m: "Anyone else dripping SCHD and JEPI? Snowball power." },
+    { n: "YieldHunter", c: "text-lime-400", b: "bg-lime-600", i: "YH", t: "11:44", m: "Adding to treasury ladder. 5.2% on 1yr T-bills is free money." },
+  ],
+};
+chatData["Q&A"] = [
+  { n: "NewbieNate", c: "text-indigo-400", b: "bg-indigo-600", i: "NN", t: "11:35", m: "What's the safest monthly dividend fund for a beginner?" },
+  { n: "SnowflakeOwl", c: "text-sky-400", b: "bg-sky-600", i: "SO", t: "11:38", m: "Start with SCHD + VOO before chasing high yield. Grow the base first." },
+];
+const myName = "You";
+let activeCat = "General";
+
+function randChat(p) {
+  const r = p[Math.floor(Math.random() * p.length)];
+  const d = new Date();
+  return { n: r.n, c: r.c, b: r.b, i: r.i, t: d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"), m: r.m };
+}
+
+function bubble(msg, me) {
+  const d = document.createElement("div");
+  d.className = "chat-msg flex gap-2.5" + (me ? " justify-end" : "");
+  const inner = document.createElement("div");
+  if (me) {
+    inner.className = "bg-sky-500/20 border border-sky-500/40 rounded-2xl rounded-tr-sm px-3 py-2 text-[13px]";
+    inner.innerHTML = '<span class="font-semibold text-sky-300 text-xs">' + msg.n + "</span><span class=\"text-[10px] text-slate-500 ml-2\">" + msg.t + "</span><p class=\"text-slate-100 mt-0.5\">" + msg.m + "</p>";
+  } else {
+    inner.innerHTML = '<div class="w-8 h-8 rounded-full ' + msg.b + ' grid place-items-center text-xs font-bold text-white shrink-0">' + msg.i + '</div><div class="bg-slate-800/70 rounded-2xl rounded-tl-sm px-3 py-2 text-[13px]"><span class="font-semibold ' + msg.c + ' text-xs">' + msg.n + '</span><span class="text-[10px] text-slate-500 ml-2">' + msg.t + '</span><p class="text-slate-200 mt-0.5 leading-snug">' + msg.m + "</p></div>";
+  }
+  d.appendChild(inner);
+  return d;
+}
+
+function seedChat(cat) {
+  const box = document.getElementById("chatBox");
+  box.innerHTML = "";
+  (chatData[cat] || []).forEach((m) => box.appendChild(bubble(m, false)));
+}
+
+function switchCat(btn, cat) {
+  activeCat = cat;
+  document.querySelectorAll("#chatTabs button").forEach((b) => {
+    b.className = "px-3 py-1.5 rounded-full " + (b === btn ? "bg-sky-500/15 text-sky-400 font-medium" : "bg-slate-800 text-slate-300");
+  });
+  seedChat(cat);
+}
+
+function sendMsg() {
+  const input = document.getElementById("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  const box = document.getElementById("chatBox");
+  box.appendChild(bubble({ n: myName, m: text, t: "now" }, true));
+  const typing = document.createElement("div");
+  typing.className = "chat-msg flex gap-2.5 items-center";
+  typing.innerHTML = '<div class="w-8 h-8 rounded-full bg-slate-700 grid place-items-center text-xs font-bold text-slate-400 shrink-0">..</div><div class="bg-slate-800/70 rounded-2xl rounded-tl-sm px-3 py-2"><span class="typing"><span></span><span></span><span></span></span></div>';
+  box.appendChild(typing);
+  box.scrollTop = box.scrollHeight;
+  setTimeout(() => {
+    typing.remove();
+    const reply = randChat(chatData[activeCat]);
+    box.appendChild(bubble(reply, false));
+    box.scrollTop = box.scrollHeight;
+  }, 1200);
+}
+
+seedChat("General");
+
+function setFilter(chip) {
+  chip.parentElement.querySelectorAll(".chip").forEach((c) => {
+    c.className = "px-2.5 py-1 rounded-full text-[11px] chip cursor-pointer " + (c === chip ? "bg-slate-800 text-slate-300" : "bg-slate-900 border border-slate-700 text-slate-400");
+  });
+}
+
+let playing = true;
+const tracks = [
+  { t: "Snowballin'", a: "Snowball Finance | Dashboard Playlist" },
+  { t: "Ride the 50-week", a: "Charts & Chill | Market Vibes" },
+  { t: "DRIP on Repeat", a: "Dividend Devotion | Playlist" },
+];
+let trackIdx = 0;
+function togglePlay() {
+  playing = !playing;
+  document.getElementById("playIcon").classList.toggle("hidden", playing);
+  document.getElementById("pauseIcon").classList.toggle("hidden", !playing);
+  document.getElementById("eq").classList.toggle("paused", !playing);
+}
+function nextTrack() {
+  trackIdx = (trackIdx + 1) % tracks.length;
+  const tr = tracks[trackIdx];
+  document.querySelector("#spotifyLoggedIn p.truncate:first-of-type").textContent = tr.t;
+  document.querySelectorAll("#spotifyLoggedIn p.truncate")[1].textContent = tr.a;
+}
+
+function loginSpotify() {
+  document.getElementById("spotifyLoggedOut").classList.add("hidden");
+  document.getElementById("spotifyLoggedIn").classList.remove("hidden");
+}
+function logoutSpotify() {
+  document.getElementById("spotifyLoggedIn").classList.add("hidden");
+  document.getElementById("spotifyLoggedOut").classList.remove("hidden");
+}
+</script>
+</body>
+</html>

@@ -130,3 +130,29 @@ create index if not exists holdings_account_id_idx on public.holdings (account_i
 create index if not exists accounts_user_id_idx on public.accounts (user_id);
 create index if not exists dividends_user_id_idx on public.dividends (user_id);
 create index if not exists snapshots_user_id_idx on public.snapshots (user_id);
+
+-- 8) Community chat (public, anonymous, realtime)
+create table if not exists public.chat_messages (
+  id bigint generated always as identity primary key,
+  category text not null check (category in ('general','bullish','bearish','dividends','qa')),
+  author_name text not null default 'Anonymous',
+  author_color text not null default '#38bdf8',
+  message text not null check (char_length(message) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+
+-- Allow public (incl. anonymous visitors) to read & write chat.
+-- Spam is limited client-side (10s between messages) and via the 500-char cap.
+alter table public.chat_messages enable row level security;
+
+create policy "chat_read_public" on public.chat_messages
+  for select using (true);
+
+create policy "chat_insert_public" on public.chat_messages
+  for insert with check (true);
+
+create index if not exists chat_messages_category_time_idx
+  on public.chat_messages (category, created_at desc);
+
+-- Realtime: allow frontend to subscribe to new rows
+alter publication supabase_realtime add table public.chat_messages;
