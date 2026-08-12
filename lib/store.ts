@@ -9,6 +9,7 @@ import {
   BrokerPreset,
   UserPreferences,
   PortfolioSnapshot,
+  PriceAlert,
 } from "@/types";
 import { uuid } from "@/lib/uuid";
 
@@ -30,6 +31,7 @@ interface PortfolioState {
   watchlist: string[];
   preferences: UserPreferences;
   snapshots: PortfolioSnapshot[];
+  alerts: PriceAlert[];
 
   addAccount: (data: { name: string; broker: BrokerPreset; currency: string }) => string;
   updateAccount: (id: string, updates: Partial<BrokerAccount>) => void;
@@ -46,12 +48,16 @@ interface PortfolioState {
   toggleWatchlist: (symbol: string) => void;
   setPreferences: (prefs: Partial<UserPreferences>) => void;
   pushSnapshot: (totalValue: number) => void;
+  addAlert: (data: Omit<PriceAlert, "id" | "createdAt">) => void;
+  removeAlert: (id: string) => void;
+  setAlerts: (alerts: PriceAlert[]) => void;
   restore: (data: {
     accounts?: BrokerAccount[];
     dividends?: DividendEvent[];
     watchlist?: string[];
     preferences?: Partial<UserPreferences>;
     snapshots?: PortfolioSnapshot[];
+    alerts?: PriceAlert[];
   }) => void;
   clearPortfolio: () => void;
 }
@@ -76,6 +82,7 @@ export const usePortfolioStore = create<PortfolioState>()(
       watchlist: [],
       preferences: DEFAULT_PREFERENCES,
       snapshots: [],
+      alerts: [],
 
       addAccount: (data) => {
         const account = createAccount(data);
@@ -179,12 +186,28 @@ export const usePortfolioStore = create<PortfolioState>()(
           return { snapshots };
         }),
 
+      addAlert: (data) =>
+        set((state) => ({
+          alerts: [
+            ...state.alerts,
+            { ...data, id: uuid(), createdAt: new Date().toISOString() },
+          ],
+        })),
+
+      removeAlert: (id) =>
+        set((state) => ({
+          alerts: state.alerts.filter((a) => a.id !== id),
+        })),
+
+      setAlerts: (alerts) => set({ alerts }),
+
       restore: (data) =>
         set((state) => ({
           accounts: data.accounts ?? state.accounts,
           dividends: data.dividends ?? state.dividends,
           watchlist: data.watchlist ?? state.watchlist,
           snapshots: data.snapshots ?? state.snapshots,
+          alerts: data.alerts ?? state.alerts,
           preferences: data.preferences
             ? { ...DEFAULT_PREFERENCES, ...state.preferences, ...data.preferences }
             : state.preferences,

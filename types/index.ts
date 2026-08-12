@@ -99,6 +99,14 @@ export type AccentColor =
   | "rose"
   | "amber";
 
+export interface PriceAlert {
+  id: string;
+  symbol: string;
+  direction: "above" | "below";
+  targetPrice: number;
+  createdAt: string;
+}
+
 export interface UserPreferences {
   userName: string;
   avatarColor: string;

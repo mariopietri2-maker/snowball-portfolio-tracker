@@ -156,3 +156,45 @@ create index if not exists chat_messages_category_time_idx
 
 -- Realtime: allow frontend to subscribe to new rows
 alter publication supabase_realtime add table public.chat_messages;
+
+-- 9) Server-side chat spam guard: a per-name rate limit on top of the client-side
+--    10s throttle, so a spammer reusing the same display name is blocked at the DB.
+create or replace function public.chat_rate_limit()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if exists (
+    select 1 from public.chat_messages
+    where author_name = new.author_name
+      and created_at > now() - interval '8 seconds'
+      and id <> new.id
+  ) then
+    raise exception 'slow_down' using errcode = 'RAISE';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists chat_rate_limit_trigger on public.chat_messages;
+create trigger chat_rate_limit_trigger
+  before insert on public.chat_messages
+  for each row execute function public.chat_rate_limit();
+
+-- 10) Price alerts (per user)
+create table if not exists public.alerts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  symbol text not null,
+  direction text not null check (direction in ('above','below')),
+  target_price numeric not null check (target_price > 0),
+  created_at timestamptz not null default now()
+);
+
+alter table public.alerts enable row level security;
+
+create policy "alerts_own" on public.alerts
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create index if not exists alerts_user_id_idx on public.alerts (user_id);

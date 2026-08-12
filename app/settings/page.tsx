@@ -1,7 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePortfolioStore } from "@/lib/store";
 import { useAuth } from "@/components/AuthProvider";
+import { getChatIdentity } from "@/lib/chat";
+import {
+  exportBackup,
+  exportHoldingsCSV,
+  exportDividendsCSV,
+} from "@/lib/export";
 import { Card, Button } from "@/components/ui";
 import type { AccentColor } from "@/types";
 
@@ -24,6 +31,23 @@ export default function SettingsPage() {
   const { preferences, setPreferences, clearPortfolio, watchlist, accounts, snapshots } =
     usePortfolioStore();
   const { user, signOut } = useAuth();
+  const [chatName, setChatName] = useState("");
+  const [chatColor, setChatColor] = useState("#38bdf8");
+
+  useEffect(() => {
+    const identity = getChatIdentity();
+    setChatName(identity.name);
+    setChatColor(identity.color);
+  }, []);
+
+  const saveChatName = () => {
+    const name = chatName.trim().slice(0, 24) || "Anonymous";
+    window.localStorage.setItem(
+      "snowball-chat-identity",
+      JSON.stringify({ name, color: chatColor })
+    );
+    setChatName(name);
+  };
 
   return (
     <div className="space-y-6">
@@ -58,6 +82,31 @@ export default function SettingsPage() {
             />
           ))}
         </div>
+      </Card>
+
+      <Card className="p-5">
+        <h2 className="font-semibold mb-4">Community Chat Name</h2>
+        <div className="flex gap-3 items-end max-w-md">
+          <label className="flex-1">
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              Chat display name
+            </span>
+            <input
+              value={chatName}
+              onChange={(e) => setChatName(e.target.value)}
+              placeholder="Anonymous"
+              maxLength={24}
+              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
+            />
+          </label>
+          <Button variant="primary" onClick={saveChatName}>
+            Save name
+          </Button>
+        </div>
+        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+          Shown in the community chat. Stored privately on this device — no
+          account needed.
+        </p>
       </Card>
 
       <Card className="p-5">
@@ -173,7 +222,16 @@ export default function SettingsPage() {
           <strong>{accounts.length}</strong> accounts · <strong>{watchlist.length}</strong> watchlist items ·{" "}
           <strong>{snapshots.length}</strong> history snapshots — stored locally in localStorage.
         </p>
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={exportBackup}>
+            Export backup (JSON)
+          </Button>
+          <Button variant="secondary" onClick={exportHoldingsCSV}>
+            Export holdings (CSV)
+          </Button>
+          <Button variant="secondary" onClick={exportDividendsCSV}>
+            Export dividends (CSV)
+          </Button>
           <Button
             variant="danger"
             onClick={() => {

@@ -4,6 +4,7 @@ import type {
   DividendEvent,
   PortfolioSnapshot,
   UserPreferences,
+  PriceAlert,
 } from "@/types";
 
 interface RowAccount {
@@ -52,6 +53,13 @@ interface RowSnapshot {
   total_value: number;
 }
 
+interface RowAlert {
+  id: string;
+  symbol: string;
+  direction: string;
+  target_price: number;
+}
+
 function mapPreferences(row: RowProfile): Partial<UserPreferences> {
   const p: Partial<UserPreferences> = {
     userName: row.username,
@@ -70,12 +78,13 @@ export async function downloadAll(uid: string) {
   const s = supabase;
   if (!s) throw new Error("Supabase not configured");
 
-  const [profile, accounts, dividends, watchlist, snapshots] = await Promise.all([
+  const [profile, accounts, dividends, watchlist, snapshots, alerts] = await Promise.all([
     s.from("profiles").select("*").eq("id", uid).maybeSingle(),
     s.from("accounts").select("id, name, broker, currency").eq("user_id", uid),
     s.from("dividends").select("*").eq("user_id", uid),
     s.from("watchlist").select("symbol").eq("user_id", uid),
     s.from("snapshots").select("date, total_value").eq("user_id", uid).order("date"),
+    s.from("alerts").select("*").eq("user_id", uid),
   ]);
 
   if (profile.error) throw profile.error;
@@ -83,6 +92,7 @@ export async function downloadAll(uid: string) {
   if (dividends.error) throw dividends.error;
   if (watchlist.error) throw watchlist.error;
   if (snapshots.error) throw snapshots.error;
+  if (alerts.error) throw alerts.error;
 
   const accountRows = (accounts.data ?? []) as RowAccount[];
 
@@ -134,12 +144,22 @@ export async function downloadAll(uid: string) {
     totalValue: Number(s2.total_value),
   }));
 
+  const alertRows = (alerts.data ?? []) as RowAlert[];
+  const alertsList: PriceAlert[] = alertRows.map((a) => ({
+    id: a.id,
+    symbol: a.symbol,
+    direction: (a.direction as PriceAlert["direction"]) ?? "above",
+    targetPrice: Number(a.target_price),
+    createdAt: "",
+  }));
+
   return {
     preferences: profile.data ? mapPreferences(profile.data as RowProfile) : undefined,
     accounts: broker,
     dividends: dividendEvents,
     watchlist: ((watchlist.data ?? []) as RowWatchlist[]).map((w) => w.symbol),
     snapshots: snapshotsList,
+    alerts: alertsList,
   };
 }
 
@@ -151,6 +171,7 @@ export async function uploadAll(
     watchlist: string[];
     preferences: UserPreferences;
     snapshots: PortfolioSnapshot[];
+    alerts: PriceAlert[];
   }
 ) {
   const s = supabase;
@@ -238,6 +259,21 @@ export async function uploadAll(
         user_id: uid,
         date: new Date(sn.date).toISOString(),
         total_value: sn.totalValue,
+      }))
+    );
+  }
+
+  // Price alerts
+  await s.from("alerts").delete().eq("user_id", uid);
+  const lastAlerts = state.alerts.slice(-50);
+  if (lastAlerts.length) {
+    await s.from("alerts").insert(
+      lastAlerts.map((a) => ({
+        id: a.id,
+        user_id: uid,
+        symbol: a.symbol,
+        direction: a.direction,
+        target_price: a.targetPrice,
       }))
     );
   }

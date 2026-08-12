@@ -11,12 +11,16 @@ import { Card, CardHeader, Badge, Button, Spinner, ChangeText } from "@/componen
 import type { NewsItem, StockInfo } from "@/types";
 
 export function StockDetail({ symbol }: { symbol: string }) {
-  const { preferences, watchlist, toggleWatchlist } = usePortfolioStore();
+  const { preferences, watchlist, toggleWatchlist, alerts, addAlert, removeAlert } =
+    usePortfolioStore();
   const [quote, setQuote] = useState<StockInfo | undefined>();
   const [loading, setLoading] = useState(true);
   const [shares, setShares] = useState("");
   const [cost, setCost] = useState("");
   const [added, setAdded] = useState<string | null>(null);
+  const [alertDirection, setAlertDirection] = useState<"above" | "below">("above");
+  const [alertTarget, setAlertTarget] = useState("");
+  const [alertAdded, setAlertAdded] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +53,7 @@ export function StockDetail({ symbol }: { symbol: string }) {
   }, [symbol]);
 
   const starred = watchlist.includes(symbol);
+  const symbolAlerts = alerts.filter((a) => a.symbol === symbol);
   const stats = useMemo(
     () => [
       { label: "Previous Close", value: quote?.prevClose != null ? formatCurrency(quote.prevClose, preferences.currency) : "—" },
@@ -78,6 +83,21 @@ export function StockDetail({ symbol }: { symbol: string }) {
     setShares("");
     setCost("");
     setTimeout(() => setAdded(null), 4000);
+  };
+
+  const submitAlert = (e: React.FormEvent) => {
+    e.preventDefault();
+    const target = parseFloat(alertTarget);
+    if (!target || target <= 0) return;
+    addAlert({ symbol, direction: alertDirection, targetPrice: target });
+    setAlertAdded(
+      `Alert set — when ${symbol} is ${alertDirection === "above" ? "≥" : "≤"} ${formatCurrency(
+        target,
+        preferences.currency
+      )}, you'll see it on the dashboard.`
+    );
+    setAlertTarget("");
+    setTimeout(() => setAlertAdded(null), 5000);
   };
 
   return (
@@ -153,6 +173,80 @@ export function StockDetail({ symbol }: { symbol: string }) {
           </Button>
         </form>
         {added && <p className="mt-3 text-sm text-accent">{added}</p>}
+      </Card>
+
+      <Card className="p-5">
+        <CardHeader
+          title="Price Alerts"
+          subtitle="Get notified when the price crosses a target (shown on your dashboard)"
+        />
+        <form onSubmit={submitAlert} className="flex flex-wrap gap-3 items-end mt-4">
+          <label className="flex-1 min-w-24">
+            <span className="text-xs text-slate-500 dark:text-slate-400">When price is</span>
+            <select
+              value={alertDirection}
+              onChange={(e) => setAlertDirection(e.target.value as "above" | "below")}
+              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
+            >
+              <option value="above">Above (≥)</option>
+              <option value="below">Below (≤)</option>
+            </select>
+          </label>
+          <label className="flex-1 min-w-24">
+            <span className="text-xs text-slate-500 dark:text-slate-400">Target price</span>
+            <input
+              value={alertTarget}
+              onChange={(e) => setAlertTarget(e.target.value)}
+              placeholder={`${quote?.price ?? 0}`}
+              inputMode="decimal"
+              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
+            />
+          </label>
+          <Button type="submit" variant="primary" disabled={!alertTarget}>
+            + Set Alert
+          </Button>
+        </form>
+        {alertAdded && <p className="mt-3 text-sm text-accent">{alertAdded}</p>}
+        {symbolAlerts.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {symbolAlerts.map((a) => {
+              const hit =
+                quote?.price != null
+                  ? a.direction === "above"
+                    ? quote.price >= a.targetPrice
+                    : quote.price <= a.targetPrice
+                  : false;
+              return (
+                <div
+                  key={a.id}
+                  className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    hit
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : "border-slate-300 dark:border-slate-700"
+                  }`}
+                >
+                  <span>
+                    {a.direction === "above" ? "≥" : "≤"}{" "}
+                    {formatCurrency(a.targetPrice, preferences.currency)}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {hit
+                      ? "triggered ✓"
+                      : quote?.price != null
+                      ? `now ${formatCurrency(quote.price, preferences.currency)}`
+                      : "waiting for a price"}
+                  </span>
+                  <button
+                    onClick={() => removeAlert(a.id)}
+                    className="text-slate-400 hover:text-rose-500 transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
 
       <Card className="p-5">

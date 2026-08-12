@@ -15,6 +15,8 @@ import { NewsFeed } from "@/components/NewsFeed";
 import { DashboardStocks } from "@/components/DashboardStocks";
 import { CommunityPreview } from "@/components/CommunityPreview";
 import { SpotifyPlayer } from "@/components/SpotifyPlayer";
+import { PriceAlertBar } from "@/components/PriceAlertBar";
+import { SnowballScore } from "@/components/SnowballScore";
 import { Card, Button } from "@/components/ui";
 
 export default function DashboardPage() {
@@ -112,6 +114,8 @@ export default function DashboardPage() {
 
       <IndicesTicker />
 
+      <PriceAlertBar currency={preferences.currency} />
+
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,0.9fr)] gap-4 items-start">
         <Card className="p-5">
           <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
@@ -149,6 +153,15 @@ export default function DashboardPage() {
         />
 
         <div className="space-y-4">
+          <Card className="p-4">
+            <SnowballScore
+              totalGainPercent={metrics.totalGainPercent}
+              totalValue={metrics.totalValue}
+              annualIncome={income.total}
+              snapshots={snapshots}
+              currency={preferences.currency}
+            />
+          </Card>
           <CommunityPreview />
           <SpotifyPlayer />
         </div>
