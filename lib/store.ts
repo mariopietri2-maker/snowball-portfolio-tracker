@@ -46,6 +46,13 @@ interface PortfolioState {
   toggleWatchlist: (symbol: string) => void;
   setPreferences: (prefs: Partial<UserPreferences>) => void;
   pushSnapshot: (totalValue: number) => void;
+  restore: (data: {
+    accounts?: BrokerAccount[];
+    dividends?: DividendEvent[];
+    watchlist?: string[];
+    preferences?: Partial<UserPreferences>;
+    snapshots?: PortfolioSnapshot[];
+  }) => void;
   clearPortfolio: () => void;
 }
 
@@ -171,6 +178,17 @@ export const usePortfolioStore = create<PortfolioState>()(
           const snapshots = [...state.snapshots, { date: now, totalValue }].slice(-120);
           return { snapshots };
         }),
+
+      restore: (data) =>
+        set((state) => ({
+          accounts: data.accounts ?? state.accounts,
+          dividends: data.dividends ?? state.dividends,
+          watchlist: data.watchlist ?? state.watchlist,
+          snapshots: data.snapshots ?? state.snapshots,
+          preferences: data.preferences
+            ? { ...DEFAULT_PREFERENCES, ...state.preferences, ...data.preferences }
+            : state.preferences,
+        })),
 
       clearPortfolio: () =>
         set({ accounts: [], dividends: [], snapshots: [] }),

@@ -43,6 +43,13 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+**Optional — accounts & cloud sync (Supabase):**
+1. Run `supabase/schema.sql` in the Supabase SQL Editor (creates tables + Row-Level Security).
+2. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` (or as Vercel env vars).
+3. In Supabase → Authentication: add your site URL to "Redirect URLs" and (for dev) disable "Confirm email".
+
+The app runs fine without Supabase (localStorage only); auth enables per-user cloud sync.
+
 ## 📁 Project Structure
 
 ```

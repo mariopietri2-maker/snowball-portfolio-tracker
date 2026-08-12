@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
@@ -18,8 +19,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-16 md:pb-4">
         <ThemeProvider />
-        <SiteHeader />
-        <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
+        <AuthProvider>
+          <SiteHeader />
+          <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );

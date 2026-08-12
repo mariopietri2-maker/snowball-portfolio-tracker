@@ -1,6 +1,7 @@
 "use client";
 
 import { usePortfolioStore } from "@/lib/store";
+import { useAuth } from "@/components/AuthProvider";
 import { Card, Button } from "@/components/ui";
 import type { AccentColor } from "@/types";
 
@@ -22,6 +23,7 @@ const REFRESH_OPTIONS = [30, 60, 120, 300];
 export default function SettingsPage() {
   const { preferences, setPreferences, clearPortfolio, watchlist, accounts, snapshots } =
     usePortfolioStore();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="space-y-6">
@@ -137,6 +139,32 @@ export default function SettingsPage() {
         <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
           Used for estimated dividend income where no recorded dividend events exist yet.
         </p>
+      </Card>
+
+      <Card className="p-5">
+        <h2 className="font-semibold mb-3">Account</h2>
+        {user ? (
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <p className="text-sm font-medium">{user.email}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Synced to the cloud — changes upload automatically.
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (confirm("Sign out of this device?")) void signOut();
+              }}
+            >
+              Sign out
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Cloud sync not configured. Add Supabase keys to enable accounts.
+          </p>
+        )}
       </Card>
 
       <Card className="p-5">
