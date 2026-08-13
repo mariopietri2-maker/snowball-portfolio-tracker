@@ -53,6 +53,12 @@ export const BROKER_PRESETS: Record<BrokerPreset, BrokerPresetMapping> = {
     cost: ["cost basis per share", "avg cost", "basis"],
     name: ["underlying symbol name", "name"],
   },
+  t212: {
+    symbol: ["ticker", "symbol", "isin"],
+    shares: ["units", "quantity", "shares", "qty"],
+    cost: ["price per share", "avg cost", "average price", "average cost"],
+    name: ["name", "description", "security name"],
+  },
 };
 
 export const BROKER_LABELS: Record<BrokerPreset, string> = {
@@ -61,6 +67,7 @@ export const BROKER_LABELS: Record<BrokerPreset, string> = {
   ibkr: "Interactive Brokers",
   robinhood: "Robinhood",
   tastytrade: "tastytrade",
+  t212: "Trading 212",
 };
 
 export function presetFromId(id: string): BrokerPreset {

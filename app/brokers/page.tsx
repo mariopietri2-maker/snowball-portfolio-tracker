@@ -7,7 +7,11 @@ import { BROKER_PRESETS, BROKER_LABELS, type BrokerPresetMapping } from "@/lib/b
 import { parsePortfolioCSV, holdingsFromParsed, type ParsedHolding } from "@/lib/csv-parser";
 import { formatCurrency } from "@/lib/finance";
 import { uuid } from "@/lib/uuid";
-import { Card, Button, Badge, EmptyState } from "@/components/ui";
+import {
+  normalizeT212Position,
+  type T212Response,
+} from "@/lib/t212";
+import { Card, Button, Badge, EmptyState, Spinner } from "@/components/ui";
 import type { BrokerPreset } from "@/types";
 
 const PRESET_IDS = Object.keys(BROKER_PRESETS) as BrokerPreset[];
@@ -20,6 +24,13 @@ export default function BrokersPage() {
   const [preset, setPreset] = useState<BrokerPreset>("generic");
   const [status, setStatus] = useState<string | null>(null);
   const [statusTone, setStatusTone] = useState<"ok" | "err">("ok");
+  const [t212State, setT212State] = useState<{
+    configured: boolean;
+    env?: string;
+    busy?: boolean;
+    message?: string;
+    tone?: "ok" | "err";
+  }>({ configured: false });
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const createAccount = () => {
@@ -89,6 +100,79 @@ export default function BrokersPage() {
     return acc.holdings.reduce((s, h) => s + h.shares * h.costBasis, 0);
   };
 
+  const syncTrading212 = async () => {
+    setT212State((s) => ({ ...s, busy: true, message: undefined }));
+    try {
+      const res = await fetch("/api/t212", { cache: "no-store" });
+      const data = (await res.json()) as T212Response;
+      if (!data.ok) {
+        setT212State({
+          configured: data.configured,
+          env: data.env,
+          busy: false,
+          tone: "err",
+          message:
+            (data.authHint
+              ? "Trading 212 rejected the credentials (401). Check that T212_API_KEY and T212_API_SECRET are the exact key + secret pair from Settings → API (Beta)."
+              : data.error) ?? "Sync failed.",
+        });
+        return;
+      }
+      const positions = (data.positions ?? [])
+        .map(normalizeT212Position)
+        .filter((h): h is NonNullable<typeof h> => h !== null);
+      const divCount = (data.dividends ?? []).length;
+
+      const store = usePortfolioStore.getState();
+      const accountCurrency =
+        data.summary?.currency ?? data.summary?.currencyCode ?? store.preferences.currency;
+      const acc = store.accounts.find((a) => a.broker === "t212");
+      const accountId =
+        acc?.id ??
+        store.addAccount({ name: "Trading 212", broker: "t212", currency: accountCurrency });
+      store.setAccountHoldings(
+        accountId,
+        positions.map((h) => ({
+          ...h,
+          id: uuid(),
+          addedAt: new Date().toISOString(),
+        }))
+      );
+
+      setT212State({
+        configured: true,
+        env: data.env,
+        busy: false,
+        tone: "ok",
+        message: `Synced ${positions.length} open position(s) from Trading 212 (${data.env ?? "live"}). ${
+          divCount > 0
+            ? `${divCount} dividend payment(s) in history (kept for reference, not auto-added to keep income math accurate).`
+            : "No dividend history found."
+        }`,
+      });
+    } catch (err) {
+      setT212State({
+        configured: true,
+        busy: false,
+        tone: "err",
+        message: err instanceof Error ? err.message : "Sync failed.",
+      });
+    }
+  };
+
+  const checkT212 = async () => {
+    const res = await fetch("/api/t212", { cache: "no-store" });
+    const data = (await res.json()) as T212Response;
+    setT212State({
+      configured: data.configured,
+      env: data.env,
+      message: data.configured
+        ? "Trading 212 API is configured. Click Sync to pull your open positions."
+        : undefined,
+      tone: "ok",
+    });
+  };
+
   return (
     <div className="space-y-5">
       <div>
@@ -110,6 +194,72 @@ export default function BrokersPage() {
           {status}
         </div>
       )}
+
+      <Card className="p-5">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold">Trading 212 · API sync</h2>
+              {t212State.configured && (
+                <Badge tone="up">connected</Badge>
+              )}
+              {t212State.env && (
+                <Badge tone="slate">{t212State.env}</Badge>
+              )}
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+              Pull your real open positions straight from your Trading 212 account.
+              Your API key never leaves the server.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={checkT212} disabled={t212State.busy}>
+              Check config
+            </Button>
+            <Button variant="primary" onClick={syncTrading212} disabled={t212State.busy}>
+              {t212State.busy ? "Syncing…" : "Sync from Trading 212"}
+            </Button>
+          </div>
+        </div>
+        {t212State.busy && <Spinner label="Fetching positions…" />}
+        {!t212State.busy && t212State.message && (
+          <div
+            className={`mt-3 rounded-lg px-4 py-3 text-sm border ${
+              t212State.tone === "err"
+                ? "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+                : "bg-accent/10 border-accent/30 text-slate-700 dark:text-slate-200"
+            }`}
+          >
+            {t212State.message}
+          </div>
+        )}
+        {!t212State.configured && (
+          <div className="mt-3 text-sm text-slate-500 dark:text-slate-400 space-y-1">
+            <p className="font-medium text-slate-600 dark:text-slate-300">
+              Not configured yet. Do this once:
+            </p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>
+                In the Trading 212 app go to{" "}
+                <strong>Settings → API (Beta)</strong> and generate an API key
+                (you&apos;ll get a key <em>and</em> a secret).
+              </li>
+              <li>
+                Set <code className="text-accent">T212_API_KEY</code> and{" "}
+                <code className="text-accent">T212_API_SECRET</code> in your Vercel
+                project env vars (both required), then redeploy.
+              </li>
+              <li>
+                Optional: <code className="text-accent">T212_ENV=demo</code> to use
+                your paper-trading account instead of live.
+              </li>
+            </ol>
+            <p className="mt-2">
+              For local dev, add the same two variables to <code className="text-accent">.env.local</code> and restart <code className="text-accent">npm run dev</code>.
+            </p>
+          </div>
+        )}
+      </Card>
 
       <Card className="p-5">
         <h2 className="font-semibold mb-3">+ Link a Broker Account</h2>

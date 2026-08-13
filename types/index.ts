@@ -3,7 +3,8 @@ export type BrokerPreset =
   | "schwab"
   | "ibkr"
   | "robinhood"
-  | "tastytrade";
+  | "tastytrade"
+  | "t212";
 
 export interface Holding {
   id: string;
