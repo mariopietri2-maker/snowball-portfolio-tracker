@@ -11,6 +11,7 @@ import {
   normalizeT212Position,
   type T212Response,
 } from "@/lib/t212";
+import { JsonImportCard } from "@/components/JsonImportCard";
 import { Card, Button, Badge, EmptyState, Spinner } from "@/components/ui";
 import type { BrokerPreset } from "@/types";
 
@@ -260,6 +261,8 @@ export default function BrokersPage() {
           </div>
         )}
       </Card>
+
+      <JsonImportCard />
 
       <Card className="p-5">
         <h2 className="font-semibold mb-3">+ Link a Broker Account</h2>

@@ -9,6 +9,7 @@ A modern, beautiful web app for stock portfolio tracking, CSV portfolio import, 
 - 📊 **Personalized Dashboard** — Greeting, live index ticker, portfolio value, day change, gains, estimated income, allocation donut, and portfolio history chart
 - 📥 **CSV Broker Import** — Link multiple brokerage accounts and import positions with per-broker layouts (Schwab, Interactive Brokers, Robinhood, tastytrade, Trading 212, generic); duplicates are merged with weighted-average cost basis
 - 🔌 **Trading 212 API Sync** — Pull your real open positions straight from your Trading 212 account with a single click (live or demo env); your API key never leaves the server
+- 🌐 **Generic JSON API Import** — Pull positions from any JSON endpoint (or paste JSON directly) with flexible field mapping; CORS is handled server-side
 - 📈 **Live Prices** — Real-time/delayed quotes for your holdings via Yahoo Finance (cached server-side)
 - 🔍 **Markets & Stock Screener** — Search any ticker, live quotes, star favorites
 - 📰 **Stock News** — Headlines for your holdings and any ticker's detail page
@@ -91,7 +92,7 @@ The app runs fine without Supabase (localStorage only); auth enables per-user cl
 app/
   ├── page.tsx                  # Personalized dashboard
   ├── portfolio/                # Merged holdings + quick add
-  ├── brokers/                  # Broker accounts + CSV import + Trading 212 sync
+  ├── brokers/                  # Broker accounts + CSV import + Trading 212 sync + JSON API import
   ├── stocks/                   # Markets screener + [symbol] detail (charts/news)
   ├── watchlist/                # Followed tickers
   ├── dividends/                # Dividend tracker + calendar
@@ -101,6 +102,7 @@ app/
   ├── api/
   │   ├── yahoo/                # Cached Yahoo Finance proxy (quotes/charts/search/news)
   │   ├── t212/                 # Trading 212 API proxy (positions/summary/dividends)
+  │   ├── proxy/                # Generic JSON fetch proxy (CORS-safe, SSRF-guarded)
   │   └── spotify/              # Spotify auth + playback proxy
   └── layout.tsx
 components/
@@ -120,6 +122,7 @@ components/
   ├── DashboardStocks.tsx
   ├── SnowballScore.tsx
   ├── PriceAlertBar.tsx
+  ├── JsonImportCard.tsx       # Generic JSON API import (URL fetch or paste)
   ├── ChatPage.tsx / CommunityPreview.tsx
   ├── SpotifyPlayer.tsx
   └── StatCard.tsx
@@ -133,6 +136,7 @@ lib/
   ├── prices.ts                 # Client fetch helpers for /api/yahoo
   ├── yahoo-transform.ts        # Yahoo response → app models
   ├── t212.ts                   # Trading 212 response normalization
+  ├── json-import.ts            # Generic JSON API portfolio parser
   ├── export.ts                 # JSON backup + CSV exports
   ├── chat.ts                   # Chat identity helpers
   ├── spotify.ts / spotify-server.ts
