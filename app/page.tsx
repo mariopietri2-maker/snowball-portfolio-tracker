@@ -26,7 +26,7 @@ export default function DashboardPage() {
   const holdings = useMemo(() => mergeAccountHoldings(accounts), [accounts]);
   const symbols = useMemo(() => holdings.map((h) => h.symbol), [holdings]);
 
-  const { quotes, loading } = useLiveQuotes(symbols, preferences.refreshSeconds);
+  const { quotes, loading, error } = useLiveQuotes(symbols, preferences.refreshSeconds);
 
   useEffect(() => {
     if (!loading && holdings.length > 0) {
@@ -51,7 +51,8 @@ export default function DashboardPage() {
   const income = estimateDividendIncome(
     holdings,
     dividends,
-    preferences.defaultYieldPct
+    preferences.defaultYieldPct,
+    prices
   );
 
   const dayChange = holdings.reduce((sum, h) => {
@@ -113,6 +114,12 @@ export default function DashboardPage() {
       </div>
 
       <IndicesTicker />
+
+      {error && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
+          Live quotes unavailable right now — showing last known prices.
+        </div>
+      )}
 
       <PriceAlertBar currency={preferences.currency} />
 

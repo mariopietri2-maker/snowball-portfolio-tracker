@@ -42,6 +42,39 @@ export default function BrokersPage() {
     setStatusTone("ok");
   };
 
+  const loadSample = async () => {
+    setStatus(null);
+    try {
+      const res = await fetch("/sample-portfolio.csv");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const parsed = parsePortfolioCSV(text, BROKER_PRESETS.generic);
+      if (parsed.length === 0) throw new Error("no holdings parsed");
+      const store = usePortfolioStore.getState();
+      const existing = store.accounts.find((a) => a.name === "Sample Portfolio");
+      const accountId =
+        existing?.id ??
+        store.addAccount({
+          name: "Sample Portfolio",
+          broker: "generic",
+          currency: store.preferences.currency,
+        });
+      store.setAccountHoldings(
+        accountId,
+        holdingsFromParsed(parsed).map((h) => ({
+          ...h,
+          id: uuid(),
+          addedAt: new Date().toISOString(),
+        }))
+      );
+      setStatus(`Loaded sample portfolio (${parsed.length} positions). Try the dashboard!`);
+      setStatusTone("ok");
+    } catch {
+      setStatus("Failed to load the sample portfolio.");
+      setStatusTone("err");
+    }
+  };
+
   const importCsv = (accountId: string, file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -176,12 +209,17 @@ export default function BrokersPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Broker Accounts</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Link your brokerage accounts and import positions from CSV exports. Data stays
-          in your browser.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Broker Accounts</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Link your brokerage accounts and import positions from CSV exports. Data stays
+            in your browser.
+          </p>
+        </div>
+        <Button variant="secondary" onClick={loadSample}>
+          Load sample portfolio
+        </Button>
       </div>
 
       {status && (

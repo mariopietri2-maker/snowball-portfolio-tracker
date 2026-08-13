@@ -53,17 +53,21 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-The app works immediately with no configuration — add your first holding on the dashboard, or import `sample-portfolio.csv` on the Brokers page.
+The app works immediately with no configuration — add your first holding on the dashboard, or hit **Load sample portfolio** on the Brokers page.
 
 **Scripts**
 
 ```bash
-npm run dev         # start the dev server
-npm run build       # production build
-npm run start       # run the production build
-npm run lint        # ESLint
-npm run typecheck   # TypeScript type check
+npm run dev            # start the dev server
+npm run build          # production build
+npm run start          # run the production build
+npm run lint           # ESLint
+npm run typecheck      # TypeScript type check
+npm run test           # run unit tests once
+npm run test:watch     # run unit tests in watch mode
 ```
+
+**CI:** a GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests, and a production build on every push/PR.
 
 ### Optional configuration
 
@@ -144,6 +148,8 @@ lib/
   └── uuid.ts
 supabase/
   └── schema.sql                # Full Supabase schema (tables, RLS, triggers, realtime)
+tests/
+  └── *.test.ts                 # Unit tests (finance, csv-parser, json-import, t212, store)
 types/
   └── index.ts
 ```

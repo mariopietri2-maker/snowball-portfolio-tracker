@@ -95,7 +95,8 @@ export function allocationByHolding(detailed: ReturnType<typeof calculatePortfol
 export function estimateDividendIncome(
   holdings: Holding[],
   dividends: DividendEvent[],
-  defaultYieldPct: number
+  defaultYieldPct: number,
+  prices: Record<string, number> = {}
 ) {
   const sharesBySymbol = new Map<string, number>();
   for (const h of holdings) {
@@ -120,7 +121,8 @@ export function estimateDividendIncome(
   let estimated = 0;
   for (const h of holdings) {
     if (eventSymbols.has(h.symbol)) continue;
-    estimated += h.shares * h.costBasis * (defaultYieldPct / 100);
+    const price = prices[h.symbol] ?? h.costBasis;
+    estimated += h.shares * price * (defaultYieldPct / 100);
   }
 
   return {
