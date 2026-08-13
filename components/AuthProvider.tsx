@@ -16,6 +16,7 @@ import { usePortfolioStore } from "@/lib/store";
 interface AuthContextValue {
   user: { id: string; email?: string } | null;
   loading: boolean;
+  isConfigured: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -24,6 +25,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
+  isConfigured: isSupabaseConfigured,
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
@@ -119,118 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
-      {isSupabaseConfigured && !loading && !user ? (
-        <SignInScreen />
-      ) : (
-        children
-      )}
+    <AuthContext.Provider
+      value={{ user, loading, isConfigured: isSupabaseConfigured, signIn, signUp, signOut }}
+    >
+      {children}
     </AuthContext.Provider>
-  );
-}
-
-function SignInScreen() {
-  const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setNotice(null);
-    if (!email.includes("@") || password.length < 6) {
-      setError("Enter a valid email and at least 6-character password.");
-      return;
-    }
-    setBusy(true);
-    try {
-      if (mode === "signin") {
-        await signIn(email, password);
-      } else {
-        await signUp(email, password);
-        // If email confirmation is on, session stays null → show notice
-        setNotice("Account created! Check your email to confirm, then sign in.");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-6">
-          <p className="text-4xl mb-2">❄️</p>
-          <h1 className="text-2xl font-bold">Snowball Portfolio Tracker</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Your portfolio, synced to the cloud.
-          </p>
-        </div>
-        <form
-          onSubmit={submit}
-          className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 space-y-4"
-        >
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setMode("signin")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                mode === "signin"
-                  ? "bg-accent text-white"
-                  : "border border-slate-300 dark:border-slate-700"
-              }`}
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("signup")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                mode === "signup"
-                  ? "bg-accent text-white"
-                  : "border border-slate-300 dark:border-slate-700"
-              }`}
-            >
-              Create account
-            </button>
-          </div>
-          <label className="block">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
-              placeholder="you@example.com"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs text-slate-500 dark:text-slate-400">Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
-              placeholder="••••••••"
-            />
-          </label>
-          {error && <p className="text-sm text-rose-500">{error}</p>}
-          {notice && <p className="text-sm text-emerald-500">{notice}</p>}
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full py-2.5 rounded-lg bg-accent text-white text-sm font-medium hover:brightness-110 transition disabled:opacity-50"
-          >
-            {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
-          </button>
-        </form>
-      </div>
-    </div>
   );
 }

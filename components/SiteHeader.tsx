@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { usePortfolioStore } from "@/lib/store";
+import { useAuth } from "@/components/AuthProvider";
+import { SignInForm } from "@/components/SignInForm";
 
 const NAV = [
   { href: "/", label: "Dashboard" },
@@ -26,6 +29,8 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { userName, avatarColor, theme } = usePortfolioStore((s) => s.preferences);
   const setPreferences = usePortfolioStore((s) => s.setPreferences);
+  const { user, isConfigured, signOut } = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
 
   const initial = (userName.trim()[0] ?? "U").toUpperCase();
 
@@ -64,14 +69,69 @@ export function SiteHeader() {
             >
               {theme === "dark" ? "☀️" : "🌙"}
             </button>
-            <Link
-              href="/settings"
-              title={userName || "Settings"}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
-              style={{ backgroundColor: avatarColor }}
-            >
-              {initial}
-            </Link>
+            <div className="relative">
+              <button
+                onClick={() => setAuthOpen((o) => !o)}
+                title={user?.email || userName || "Account"}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white hover:brightness-110 transition"
+                style={{ backgroundColor: avatarColor }}
+              >
+                {initial}
+              </button>
+              {authOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setAuthOpen(false)}
+                    aria-hidden
+                  />
+                  <div className="absolute right-0 mt-2 w-80 z-40 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-3">
+                    {user ? (
+                      <>
+                        <div>
+                          <p className="text-sm font-semibold break-all">{user.email}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Synced to the cloud
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setAuthOpen(false);
+                            void signOut();
+                          }}
+                          className="w-full text-left text-sm text-rose-500 hover:text-rose-400 font-medium"
+                        >
+                          Sign out
+                        </button>
+                      </>
+                    ) : isConfigured ? (
+                      <>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Sign in to sync your portfolio across devices.
+                        </p>
+                        <SignInForm onSuccess={() => setAuthOpen(false)} />
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
+                          Cloud sync is off
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Add Supabase keys to enable accounts and cross-device sync.
+                        </p>
+                        <Link
+                          href="/settings"
+                          onClick={() => setAuthOpen(false)}
+                          className="block text-sm text-accent hover:underline"
+                        >
+                          Open settings →
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>

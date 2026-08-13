@@ -221,12 +221,12 @@ export function timeAgo(ts?: number) {
   return `${days}d ago`;
 }
 
-const PALLETTE = ["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#06b6d4", "#84cc16", "#eab308"];
+const PALETTE = ["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e", "#06b6d4", "#84cc16", "#eab308"];
 
 export function colorForSymbol(symbol: string) {
   let hash = 0;
   for (let i = 0; i < symbol.length; i++) {
     hash = (hash * 31 + symbol.charCodeAt(i)) >>> 0;
   }
-  return PALLETTE[hash % PALLETTE.length];
+  return PALETTE[hash % PALETTE.length];
 }

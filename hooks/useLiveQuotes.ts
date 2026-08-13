@@ -28,7 +28,13 @@ export function useLiveQuotes(symbols: string[], refreshSeconds = 60) {
     }
     try {
       const data = await fetchSpark(syms);
-      setQuotes((prev) => ({ ...prev, ...data }));
+      setQuotes((prev) => {
+        const next = { ...prev, ...data };
+        for (const key of Object.keys(next)) {
+          if (!syms.includes(key)) delete next[key];
+        }
+        return next;
+      });
       setError(false);
       setLastUpdated(new Date());
     } catch {

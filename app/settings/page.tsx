@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePortfolioStore } from "@/lib/store";
 import { useAuth } from "@/components/AuthProvider";
+import { SignInForm } from "@/components/SignInForm";
 import { getChatIdentity } from "@/lib/chat";
 import {
   exportBackup,
@@ -30,7 +31,7 @@ const REFRESH_OPTIONS = [30, 60, 120, 300];
 export default function SettingsPage() {
   const { preferences, setPreferences, clearPortfolio, watchlist, accounts, snapshots } =
     usePortfolioStore();
-  const { user, signOut } = useAuth();
+  const { user, isConfigured, signOut } = useAuth();
   const [chatName, setChatName] = useState("");
   const [chatColor, setChatColor] = useState("#38bdf8");
 
@@ -208,6 +209,14 @@ export default function SettingsPage() {
             >
               Sign out
             </Button>
+          </div>
+        ) : isConfigured ? (
+          <div className="max-w-md space-y-3">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Sign in to sync your portfolio across devices. No account? Create one —
+              it only takes a minute.
+            </p>
+            <SignInForm />
           </div>
         ) : (
           <p className="text-sm text-slate-500 dark:text-slate-400">

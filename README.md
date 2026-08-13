@@ -7,16 +7,21 @@ A modern, beautiful web app for stock portfolio tracking, CSV portfolio import, 
 ## ✨ Features
 
 - 📊 **Personalized Dashboard** — Greeting, live index ticker, portfolio value, day change, gains, estimated income, allocation donut, and portfolio history chart
-- 📥 **CSV Broker Import** — Link multiple brokerage accounts and import positions with per-broker layouts (Schwab, Interactive Brokers, Robinhood, tastytrade, generic); duplicates are merged with weighted-average cost basis
+- 📥 **CSV Broker Import** — Link multiple brokerage accounts and import positions with per-broker layouts (Schwab, Interactive Brokers, Robinhood, tastytrade, Trading 212, generic); duplicates are merged with weighted-average cost basis
+- 🔌 **Trading 212 API Sync** — Pull your real open positions straight from your Trading 212 account with a single click (live or demo env); your API key never leaves the server
 - 📈 **Live Prices** — Real-time/delayed quotes for your holdings via Yahoo Finance (cached server-side)
 - 🔍 **Markets & Stock Screener** — Search any ticker, live quotes, star favorites
 - 📰 **Stock News** — Headlines for your holdings and any ticker's detail page
 - 📈 **Stock Detail Pages** — Interactive price chart (1D–5Y), 52-week range, volume, add-position
+- 🔔 **Price Alerts** — Set "above"/"below" alerts per symbol and see which ones have triggered
+- 🏆 **Snowball Score** — A composite score summarizing your portfolio's gain, size, income, and momentum
 - 👤 **Personalization** — Profile name, avatar, base currency, dark/light theme, accent color, refresh rate, yield assumption
-- 💬 **Community Chat** — realtime public chat with categories (Bullish/Bearish/Dividends/Q&A), anonymous names, powered by Supabase
+- 💬 **Community Chat** — realtime public chat with categories (General/Bullish/Bearish/Dividends/Q&A), anonymous names, server-side spam guard, powered by Supabase
 - 🎧 **Spotify Mini Player** — log in with your own Spotify account and play/pause music right from the dashboard
-- 💰 **Dividend Tracker & Calendar** — Manual events, upcoming payouts, income estimate, calendar view
+- 💰 **Dividend Tracker & Calendar** — Manual events, upcoming payouts, income estimate, calendar view, annual income progress
 - ❄️ **Snowball Visualizer** — Interactive compound growth simulator with dividend reinvestment
+- 📤 **Data Export** — One-click export of your full portfolio backup (JSON) or holdings/dividends (CSV)
+- ☁️ **Optional Cloud Sync** — Sign in from the header or Settings to sync your portfolio across devices. The app stays fully usable without an account (localStorage only)
 - 📱 Responsive design (mobile-friendly, bottom nav on mobile)
 
 > Data is stored in your browser's localStorage — no backend required. Prices are delayed, provided for informational purposes only.
@@ -28,6 +33,8 @@ A modern, beautiful web app for stock portfolio tracking, CSV portfolio import, 
 - **Charts**: Recharts
 - **State**: Zustand + localStorage (no backend required for MVP)
 - **Market data**: Yahoo Finance via a cached server route (`/api/yahoo`)
+- **Realtime**: Supabase (auth, cloud sync, community chat)
+- **CSV**: PapaParse
 
 ## 🚀 Getting Started
 
@@ -45,35 +52,63 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-**Optional — accounts & cloud sync (Supabase):**
-1. Run `supabase/schema.sql` in the Supabase SQL Editor (creates tables + Row-Level Security, incl. the realtime `chat_messages` table).
+The app works immediately with no configuration — add your first holding on the dashboard, or import `sample-portfolio.csv` on the Brokers page.
+
+**Scripts**
+
+```bash
+npm run dev         # start the dev server
+npm run build       # production build
+npm run start       # run the production build
+npm run lint        # ESLint
+npm run typecheck   # TypeScript type check
+```
+
+### Optional configuration
+
+Copy `.env.example` to `.env.local` and fill in only what you need:
+
+**Accounts & cloud sync (Supabase):**
+1. Run `supabase/schema.sql` in the Supabase SQL Editor (creates tables + Row-Level Security, incl. the realtime `chat_messages` table and price `alerts`).
 2. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` (or as Vercel env vars).
 3. In Supabase → Authentication: add your site URL to "Redirect URLs" and (for dev) disable "Confirm email".
 
 The app runs fine without Supabase (localStorage only); auth enables per-user cloud sync.
 
-**Optional — Spotify mini player (dashboard):**
+**Spotify mini player (dashboard):**
 1. Create an app at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) → Edit settings → add Redirect URI: `http://localhost:3000/api/spotify/callback` (add your production URL too).
 2. Set `NEXT_PUBLIC_SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` in `.env.local` (the secret is server-side only — do not expose it).
 3. The player uses your personal Spotify account. Spotify policy requires a manual tap to start playback (no autoplay).
+
+**Trading 212 API sync (Brokers page):**
+1. In the Trading 212 app go to **Settings → API (Beta)** and generate an API key (you'll get a key *and* a secret).
+2. Set `T212_API_KEY` and `T212_API_SECRET` in `.env.local` (or Vercel env vars), then restart the dev server / redeploy.
+3. Optional: `T212_ENV=demo` to sync your paper-trading account instead of live.
 
 ## 📁 Project Structure
 
 ```
 app/
-  ├── page.tsx              # Personalized dashboard
-  ├── portfolio/            # Merged holdings + quick add
-  ├── brokers/              # Broker accounts + CSV import
-  ├── stocks/               # Markets screener + [symbol] detail (charts/news)
-  ├── watchlist/            # Followed tickers
-  ├── dividends/            # Dividend tracker + calendar
-  ├── snowball/             # Growth visualizer
-  ├── settings/             # Profile, theme, currency
-  ├── api/yahoo/            # Cached Yahoo Finance proxy
+  ├── page.tsx                  # Personalized dashboard
+  ├── portfolio/                # Merged holdings + quick add
+  ├── brokers/                  # Broker accounts + CSV import + Trading 212 sync
+  ├── stocks/                   # Markets screener + [symbol] detail (charts/news)
+  ├── watchlist/                # Followed tickers
+  ├── dividends/                # Dividend tracker + calendar
+  ├── snowball/                 # Growth visualizer
+  ├── chat/                     # Realtime community chat
+  ├── settings/                 # Profile, theme, currency, exports, sign out
+  ├── api/
+  │   ├── yahoo/                # Cached Yahoo Finance proxy (quotes/charts/search/news)
+  │   ├── t212/                 # Trading 212 API proxy (positions/summary/dividends)
+  │   └── spotify/              # Spotify auth + playback proxy
   └── layout.tsx
 components/
-  ├── ui.tsx                # Card, Button, Badge, Spinner
-  ├── IndicesTicker.tsx     # Live index marquee
+  ├── ui.tsx                    # Card, Button, Badge, Spinner, EmptyState
+  ├── AuthProvider.tsx          # Supabase auth session provider
+  ├── ThemeProvider.tsx
+  ├── SiteHeader.tsx            # Desktop nav + mobile bottom nav
+  ├── IndicesTicker.tsx         # Live index marquee
   ├── StockPriceChart.tsx
   ├── AllocationChart.tsx
   ├── PortfolioHistoryChart.tsx
@@ -82,19 +117,29 @@ components/
   ├── WatchlistGrid.tsx
   ├── DividendCalendar.tsx
   ├── HoldingsTable.tsx
-  ├── StatCard.tsx
-  ├── SiteHeader.tsx
-  └── ThemeProvider.tsx
+  ├── DashboardStocks.tsx
+  ├── SnowballScore.tsx
+  ├── PriceAlertBar.tsx
+  ├── ChatPage.tsx / CommunityPreview.tsx
+  ├── SpotifyPlayer.tsx
+  └── StatCard.tsx
 hooks/
-  └── useLiveQuotes.ts      # Polling quotes hook
+  └── useLiveQuotes.ts          # Polling quotes hook (dedupes + prunes stale symbols)
 lib/
-  ├── store.ts              # Zustand store (accounts, watchlist, prefs)
-  ├── csv-parser.ts         # Broker preset CSV parsing
-  ├── broker-presets.ts
-  ├── prices.ts             # Client fetch helpers
-  ├── yahoo-transform.ts
-  ├── finance.ts
+  ├── store.ts                  # Zustand store (accounts, dividends, watchlist, prefs, alerts)
+  ├── finance.ts                # Metrics, allocation, dividend income, snowball projection
+  ├── csv-parser.ts             # Broker preset CSV parsing
+  ├── broker-presets.ts         # Per-broker CSV column mappings
+  ├── prices.ts                 # Client fetch helpers for /api/yahoo
+  ├── yahoo-transform.ts        # Yahoo response → app models
+  ├── t212.ts                   # Trading 212 response normalization
+  ├── export.ts                 # JSON backup + CSV exports
+  ├── chat.ts                   # Chat identity helpers
+  ├── spotify.ts / spotify-server.ts
+  ├── supabase.ts / supabase-cloud.ts
   └── uuid.ts
+supabase/
+  └── schema.sql                # Full Supabase schema (tables, RLS, triggers, realtime)
 types/
   └── index.ts
 ```
@@ -108,8 +153,11 @@ types/
 - [x] Broker account management
 - [x] Watchlist + personalized dashboard
 - [x] Market news
+- [x] Price alerts + Snowball Score
+- [x] Data exports (JSON backup / CSV)
+- [x] Trading 212 API sync
 - [ ] Plaid-style broker linking
-- [ ] True multi-user accounts (Supabase backend)
+- [ ] Full multi-user accounts (Supabase sync hardening)
 - [ ] Multi-currency conversions
 - [ ] Tax estimate (optional)
 - [ ] Export reports

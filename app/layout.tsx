@@ -5,9 +5,20 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
-  title: "Snowball Portfolio Tracker",
+  title: {
+    default: "Snowball Portfolio Tracker",
+    template: "%s · Snowball Portfolio Tracker",
+  },
   description:
     "Track your stock portfolio, monitor dividends, follow the market, and visualize the snowball effect of compounding.",
+  applicationName: "Snowball Portfolio Tracker",
+  icons: {
+    icon: "/icon.svg",
+  },
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#020617" },
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
+  ],
 };
 
 export default function RootLayout({
